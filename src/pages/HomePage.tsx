@@ -17,16 +17,16 @@ const MOCK_CHART_DATA = [
   { name: 'Thu', volume: 51 }, { name: 'Fri', volume: 48 }, { name: 'Sat', volume: 55 }, { name: 'Sun', volume: 50 },
 ];
 export function HomePage() {
-  const { data: stats, isLoading, isError, refetch } = useQuery<DashboardStats>({
+  const { data: stats, isLoading, isFetching, isError, refetch } = useQuery<DashboardStats>({
     queryKey: ["dashboard-stats"],
     queryFn: () => api<DashboardStats>("/api/dashboard/stats"),
     retry: 1,
   });
   const cards = stats ? [
-    { title: "Current Census", value: stats.census, icon: Users, color: "text-medical-blue", trend: "+2.5% vs avg" },
-    { title: "Urgent Care", value: stats.urgentCount, icon: AlertCircle, color: "text-medical-urgent", trend: "High Priority" },
-    { title: "Flow Velocity", value: `${stats.volumeTrend}%`, icon: Activity, color: "text-medical-blue", trend: "Stability Index" },
-    { title: "Discharged", value: stats.dischargedToday, icon: LogOut, color: "text-medical-stable", trend: "Processed" },
+    { title: "Current Census", value: stats.census, icon: Users, color: "text-medical-blue", trend: "+2.5% vs avg", pulse: true },
+    { title: "Urgent Care", value: stats.urgentCount, icon: AlertCircle, color: "text-medical-urgent", trend: "High Priority", pulse: false },
+    { title: "Flow Velocity", value: `${stats.volumeTrend}%`, icon: Activity, color: "text-medical-blue", trend: "Stability Index", pulse: false },
+    { title: "Discharged", value: stats.dischargedToday, icon: LogOut, color: "text-medical-stable", trend: "Processed", pulse: false },
   ] : [];
   if (isLoading) {
     return (
@@ -76,21 +76,38 @@ export function HomePage() {
             <p className="text-muted-foreground font-medium">Facility status and real-time clinical throughput.</p>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => refetch()} className="shadow-sm active:scale-95 transition-transform bg-white">Refresh Data</Button>
+            <Button 
+              variant="outline" 
+              onClick={() => refetch()} 
+              disabled={isFetching}
+              className="shadow-sm active:scale-95 transition-transform bg-white min-w-[120px]"
+            >
+              <RefreshCcw className={cn("w-4 h-4 mr-2", isFetching && "animate-spin")} />
+              {isFetching ? "Syncing..." : "Refresh Data"}
+            </Button>
             <Button className="bg-medical-blue hover:bg-medical-blue/90 text-white shadow-primary active:scale-95 transition-all">New Admission</Button>
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {cards.map((card) => (
-            <Card key={card.title} className="shadow-soft hover:shadow-md hover:-translate-y-1 transition-all duration-300 border-border group bg-white">
+            <Card key={card.title} className="shadow-soft hover:shadow-md hover:-translate-y-1 transition-all duration-300 border-border group bg-white relative overflow-hidden">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">{card.title}</CardTitle>
                 <div className={cn("p-2 rounded-lg bg-slate-50 transition-colors group-hover:bg-white", card.color)}>
-                  <card.icon className="w-4 h-4" />
+                  <card.icon className={cn("w-4 h-4", card.pulse && "animate-pulse")} />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-extrabold tracking-tight">{card.value}</div>
+                <div className="flex items-baseline gap-2">
+                  <div className="text-3xl font-extrabold tracking-tight">{card.value}</div>
+                  {card.pulse && (
+                    <div className="flex gap-1 items-end h-4 mb-1">
+                      <div className="w-1 bg-medical-blue/40 h-1 animate-[bounce_1s_infinite_0ms]" />
+                      <div className="w-1 bg-medical-blue/40 h-3 animate-[bounce_1s_infinite_200ms]" />
+                      <div className="w-1 bg-medical-blue/40 h-2 animate-[bounce_1s_infinite_400ms]" />
+                    </div>
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 font-semibold">
                   <TrendingUp className="w-3 h-3 text-medical-stable" /> {card.trend}
                 </p>
@@ -103,7 +120,7 @@ export function HomePage() {
             <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
               <CardTitle className="text-lg font-bold">Facility Volume Trend</CardTitle>
               <Badge variant="secondary" className="text-[9px] font-extrabold uppercase bg-medical-blue/10 text-medical-blue border-none tracking-widest px-2 py-0.5">
-                Live Window
+                7-Day Analysis
               </Badge>
             </CardHeader>
             <CardContent className="pt-6">
@@ -117,13 +134,41 @@ export function HomePage() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }} dx={-10} />
-                    <Tooltip 
-                      contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', padding: '12px' }} 
-                      labelStyle={{ fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }} 
+                      dy={10} 
                     />
-                    <Area type="monotone" dataKey="volume" stroke="#0EA5E9" strokeWidth={3} fillOpacity={1} fill="url(#colorVolume)" />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }} 
+                      dx={-10} 
+                    />
+                    <Tooltip
+                      cursor={{ stroke: '#0EA5E9', strokeWidth: 1, strokeDasharray: '4 4' }}
+                      contentStyle={{ 
+                        borderRadius: '12px', 
+                        border: '1px solid #e2e8f0', 
+                        boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', 
+                        padding: '12px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        backdropFilter: 'blur(4px)'
+                      }}
+                      labelStyle={{ fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}
+                      formatter={(value) => [`${value} Patients`, 'Census Volume']}
+                    />
+                    <Area 
+                      type="basis" 
+                      dataKey="volume" 
+                      stroke="#0EA5E9" 
+                      strokeWidth={3} 
+                      fillOpacity={1} 
+                      fill="url(#colorVolume)" 
+                      animationDuration={1500}
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -132,7 +177,7 @@ export function HomePage() {
           <Card className="shadow-soft overflow-hidden border-border h-full bg-white flex flex-col">
             <CardHeader className="bg-medical-blue text-white pb-6 shrink-0">
               <CardTitle className="text-lg font-bold">Rapid Response</CardTitle>
-              <p className="text-sm text-white/80 font-medium">Critical protocols and diagnostic shortcuts.</p>
+              <p className="text-sm text-white/80 font-medium">Critical protocols and shortcuts.</p>
             </CardHeader>
             <CardContent className="p-0 flex-1">
               <div className="bg-white rounded-t-2xl -mt-3 p-5 space-y-3 relative z-10 flex-1">
@@ -170,12 +215,15 @@ export function HomePage() {
             </CardHeader>
             <CardContent className="pt-6">
               {stats.recentActivity.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground italic font-medium">No recent flow activity recorded.</div>
+                <div className="text-center py-12 text-muted-foreground italic font-medium">No recent activity recorded.</div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-x-10 gap-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-10 gap-y-6">
                   {stats.recentActivity.map((activity) => (
-                    <div key={activity.id} className="flex items-center gap-4 group p-3 rounded-2xl transition-all border border-transparent hover:bg-slate-50 hover:border-slate-100 cursor-pointer">
-                      <Avatar className="w-12 h-12 shadow-sm group-hover:scale-105 group-hover:shadow-primary/20 transition-all shrink-0 border-2 border-white">
+                    <div 
+                      key={activity.id} 
+                      className="flex items-center gap-4 group p-3 rounded-2xl transition-all border border-transparent hover:bg-slate-50 hover:border-slate-200 hover:scale-[1.01] cursor-pointer"
+                    >
+                      <Avatar className="w-12 h-12 shadow-sm group-hover:shadow-primary/20 transition-all shrink-0 border-2 border-white">
                         <AvatarImage src={activity.patientAvatar} />
                         <AvatarFallback className="bg-slate-100 font-extrabold text-xs text-slate-500">
                           {activity.patientName.charAt(0)}

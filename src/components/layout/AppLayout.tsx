@@ -1,11 +1,24 @@
-import React from "react";
-import { LayoutDashboard, Users, MessageSquare, Settings, Search, Bell, User as UserIcon, ShieldCheck, RefreshCw } from "lucide-react";
+import React, { useState } from "react";
+import { 
+  LayoutDashboard, 
+  Users, 
+  MessageSquare, 
+  Settings, 
+  Search, 
+  Bell, 
+  User as UserIcon, 
+  ShieldCheck, 
+  RefreshCw,
+  Menu,
+  X
+} from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useIsFetching } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 const NAV_ITEMS = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
   { name: 'Patient Registry', icon: Users, path: '/patients' },
@@ -14,12 +27,16 @@ const NAV_ITEMS = [
 ];
 const APP_VERSION = "v2.5.3";
 const BUILD_DATE = "MAY 2024";
-export function AppSidebar() {
+interface SidebarProps {
+  onItemClick?: () => void;
+  className?: string;
+}
+export function SidebarContent({ onItemClick, className }: SidebarProps) {
   const { pathname } = useLocation();
   return (
-    <div className="w-64 border-r bg-white flex flex-col h-full shrink-0 shadow-sm relative z-40">
+    <div className={cn("flex flex-col h-full shrink-0 relative z-40", className)}>
       <div className="p-8">
-        <Link to="/" className="flex items-center gap-3 group">
+        <Link to="/" className="flex items-center gap-3 group" onClick={onItemClick}>
           <div className="w-10 h-10 bg-medical-blue rounded-xl flex items-center justify-center shadow-primary group-hover:scale-110 transition-transform">
             <ShieldCheck className="w-6 h-6 text-white" />
           </div>
@@ -33,6 +50,7 @@ export function AppSidebar() {
             <Link
               key={item.path}
               to={item.path}
+              onClick={onItemClick}
               className={cn(
                 "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all group relative overflow-hidden",
                 isActive
@@ -49,7 +67,7 @@ export function AppSidebar() {
           );
         })}
       </nav>
-      <div className="p-6 border-t bg-slate-50/50">
+      <div className="p-6 border-t bg-slate-50/50 mt-auto">
         <div className="flex items-center gap-2 mb-2">
           <div className="w-2 h-2 rounded-full bg-medical-stable animate-pulse" />
           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em]">Clinical Node: LIVE</span>
@@ -61,13 +79,31 @@ export function AppSidebar() {
 }
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const isFetching = useIsFetching();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   return (
     <div className="flex h-screen bg-slate-50/50 overflow-hidden font-sans">
-      <AppSidebar />
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block w-64 border-r bg-white shadow-sm shrink-0">
+        <SidebarContent />
+      </div>
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 border-b bg-white flex items-center justify-between px-8 z-30 shadow-sm shrink-0">
-          <div className="flex-1 max-w-md">
-            <div className="relative group">
+        <header className="h-16 border-b bg-white flex items-center justify-between px-4 sm:px-8 z-30 shadow-sm shrink-0">
+          <div className="flex items-center gap-4 flex-1 max-w-md">
+            {/* Mobile Navigation Trigger */}
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="lg:hidden shrink-0">
+                  <Menu className="w-6 h-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-64">
+                <SheetHeader className="sr-only">
+                  <SheetTitle>Navigation Menu</SheetTitle>
+                </SheetHeader>
+                <SidebarContent onItemClick={() => setIsMobileMenuOpen(false)} />
+              </SheetContent>
+            </Sheet>
+            <div className="relative group flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-medical-blue transition-all duration-300" />
               <Input
                 placeholder="Search clinician database..."
@@ -75,28 +111,28 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               />
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <div className={cn(
-              "hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full border bg-slate-50 transition-all duration-500",
+              "hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border bg-slate-50 transition-all duration-500",
               isFetching ? "opacity-100 border-medical-blue/30 translate-y-0" : "opacity-0 invisible -translate-y-1"
             )}>
               <RefreshCw className="w-3.5 h-3.5 text-medical-blue animate-spin" />
               <span className="text-[10px] font-bold text-medical-blue uppercase tracking-tighter">Syncing</span>
             </div>
-            <Badge variant="outline" className="hidden md:flex bg-medical-blue/5 border-medical-blue/20 text-medical-blue text-[10px] font-bold px-2 py-0.5 tracking-tight">
-              Aura Health EMR {APP_VERSION} • {BUILD_DATE}
+            <Badge variant="outline" className="hidden xl:flex bg-medical-blue/5 border-medical-blue/20 text-medical-blue text-[10px] font-bold px-2 py-0.5 tracking-tight shrink-0">
+              EMR {APP_VERSION}
             </Badge>
-            <Button variant="ghost" size="icon" className="relative hover:bg-slate-100 h-10 w-10 rounded-xl transition-colors">
+            <Button variant="ghost" size="icon" className="relative hover:bg-slate-100 h-9 w-9 sm:h-10 sm:w-10 rounded-xl transition-colors shrink-0">
               <Bell className="w-5 h-5 text-slate-600" />
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-medical-urgent rounded-full border-2 border-white" />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-medical-urgent rounded-full border-2 border-white" />
             </Button>
-            <div className="w-px h-6 bg-slate-200 mx-1" />
-            <div className="flex items-center gap-3 group cursor-pointer">
+            <div className="hidden sm:block w-px h-6 bg-slate-200 mx-1" />
+            <div className="flex items-center gap-2 sm:gap-3 group cursor-pointer shrink-0">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-bold text-slate-900 leading-none group-hover:text-medical-blue transition-colors">Dr. Thorne</p>
                 <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest mt-1">Chief Surgeon</p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shadow-sm group-hover:border-medical-blue group-hover:bg-white transition-all">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shadow-sm group-hover:border-medical-blue group-hover:bg-white transition-all">
                 <UserIcon className="w-5 h-5 text-slate-600 group-hover:text-medical-blue" />
               </div>
             </div>
