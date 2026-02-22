@@ -1,6 +1,5 @@
 import React from "react";
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
-import { LayoutDashboard, Users, MessageSquare, Settings, Search, Bell, User as UserIcon, ShieldCheck, CloudSync } from "lucide-react";
+import { LayoutDashboard, Users, MessageSquare, Settings, Search, Bell, User as UserIcon, ShieldCheck, RefreshCw } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -73,7 +72,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               "flex items-center gap-2 px-3 py-1 rounded-full border bg-slate-50 transition-all duration-300",
               isFetching ? "opacity-100 border-medical-blue/30" : "opacity-0 invisible"
             )}>
-              <CloudSync className="w-3 h-3 text-medical-blue animate-spin" />
+              <RefreshCw className="w-3 h-3 text-medical-blue animate-spin" />
               <span className="text-[10px] font-bold text-medical-blue uppercase tracking-tighter">Syncing Census</span>
             </div>
             <Button variant="ghost" size="icon" className="relative hover:bg-slate-100">
