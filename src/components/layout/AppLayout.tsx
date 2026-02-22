@@ -28,6 +28,44 @@ const NAV_ITEMS = [
   { name: 'Clinic Settings', icon: Settings, path: '/settings' },
 ];
 const APP_VERSION = "1.0.0";
+
+const STATUS_TICKER_ITEMS: { text: string; urgent?: boolean }[] = [
+  { text: "Emergency inbound — coming in from ambulatory department", urgent: true },
+  { text: "Patient transfer: Ward 3 → ICU", urgent: false },
+  { text: "Code blue — North Wing", urgent: true },
+  { text: "Lab results ready: Batch #4421", urgent: false },
+  { text: "New admission: ED bed 4", urgent: false },
+  { text: "Critical: Medication reconciliation required — Ward 2", urgent: true },
+  { text: "Discharge clearance pending: Bed 12", urgent: false },
+  { text: "Rapid response team dispatched — South Wing", urgent: true },
+  { text: "Imaging stat: CT scan room 2", urgent: false },
+];
+
+function StatusTicker() {
+  const duplicated = [...STATUS_TICKER_ITEMS, ...STATUS_TICKER_ITEMS];
+  return (
+    <div className="h-9 bg-slate-900 text-white flex items-center overflow-hidden shrink-0 relative z-50">
+      <div className="absolute inset-0 flex items-center overflow-hidden">
+        <div className="animate-ticker flex items-center gap-8 whitespace-nowrap py-2 pl-4">
+          {duplicated.map((item, i) => (
+            <React.Fragment key={`${i}-${item.text.slice(0, 15)}`}>
+              <span
+                className={cn(
+                  "text-xs font-bold uppercase tracking-wider",
+                  item.urgent ? "text-red-400" : "text-slate-300"
+                )}
+              >
+                {item.text}
+              </span>
+              <span className="text-slate-500 select-none" aria-hidden> • </span>
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface SidebarProps {
   onItemClick?: (path: string) => void;
   className?: string;
@@ -99,8 +137,9 @@ export function AppLayout() {
         <div className="hidden lg:block w-64 border-r bg-white shadow-sm shrink-0">
           <SidebarContent />
         </div>
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <header className="h-16 border-b bg-white flex items-center justify-between px-4 sm:px-8 z-50 shadow-sm shrink-0">
+        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+          <StatusTicker />
+          <header className="h-16 border-b bg-white flex items-center justify-between px-4 sm:px-8 z-40 shadow-sm shrink-0">
             <div className="flex items-center gap-4 flex-1 max-w-md">
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>

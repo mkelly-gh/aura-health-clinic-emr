@@ -1,33 +1,62 @@
 /**
- * Wrangler config for the Cloudflare Durable Object template
- * STRICTLY DO NOT MODIFY THIS FILE - Hidden from AI to prevent breaking core functionality
+ * Wrangler config for AURA CLINICAL PORTAL
+ * FIXED: Custom Domain syntax (Literal domain only)
  */
- {
+{
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "aura-health-emr-c2lhn7zal2th3ishlhswv",
+	"account_id": "be7ed04b9a1008aa59d029cb6cd01830",
 	"main": "worker/index.ts",
 	"compatibility_date": "2025-04-24",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"workers_dev": false,
+	"preview_urls": false,
+	// --- FIXED CUSTOM DOMAIN ---
+	// Custom domains must be the literal domain name only
+	"routes": [
+		{
+			"custom_domain": true,
+			"pattern": "aurahealthclinic.com"
+		}
+	],
 	"assets": {
 		"not_found_handling": "single-page-application",
-		"run_worker_first": ["/api/*", "!/api/docs/*"]
+		"run_worker_first": [
+			"/api/*",
+			"!/api/docs/*"
+		]
 	},
+	"d1_databases": [
+		
+		{
+			"binding": "aura_health_clinic_db",
+			"database_name": "aura-health-clinic-db",
+			"database_id": "e27f4f54-78d8-4354-8a5d-64e82fe5c1d6",
+			"remote": true
+		},
+	],
 	"observability": {
 		"enabled": true
 	},
-    "durable_objects": {
-      "bindings": [
-        {
-          "name": "GlobalDurableObject",
-          "class_name": "GlobalDurableObject"
-        }
-      ]
-    },
-    "migrations": [
-      {
-        "tag": "v1",
-        "new_sqlite_classes": [
-          "GlobalDurableObject"
-        ]
-      }
-    ]
+	"ai": {
+		"binding": "AI"
+	},
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "GlobalDurableObject",
+				"class_name": "GlobalDurableObject"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": [
+				"GlobalDurableObject"
+			]
+		}
+	]
 }

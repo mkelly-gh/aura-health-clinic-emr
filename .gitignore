@@ -1,3 +1,33 @@
-
 # Bootstrap marker
 .bootstrap-complete
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.vite/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs and debug
+*.log
+npm-debug.log*
+.eslintcache
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# TypeScript / tooling
+*.tsbuildinfo
+node_modules/.tmp/

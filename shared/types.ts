@@ -34,6 +34,10 @@ export interface Evidence {
   type: string;
   url: string;
   date: string;
+  /** AI analysis (e.g. injury description from image model). */
+  analysis?: string;
+  /** MIME type for image evidence (e.g. image/jpeg). */
+  mediaType?: string;
 }
 export interface ClinicalRecord {
   history: MedicalHistoryItem[];

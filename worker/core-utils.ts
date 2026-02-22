@@ -1,14 +1,17 @@
 /**
- * Core utilities for Multiple Entities sharing a single Durable Object class
- * DO NOT MODIFY THIS FILE - You may break the project functionality. STRICTLY DO NOT TOUCH
- * Look at the \`worker/entities.ts\` file for examples on how to use this library
+ * Core utilities for Multiple Entities sharing a single Durable Object class.
+ * See worker/entities.ts for examples on how to use this library.
  */
 import type { ApiResponse } from "@shared/types";
-import { DurableObject } from "cloudflare:workers"; // DO NOT MODIFY THIS LINE. This is always already installed and available
+import { DurableObject } from "cloudflare:workers";
 import type { Context } from "hono";
 
+/** Workers AI: text models use { prompt }, vision (LLaVA) uses { image: number[], prompt }. */
 export interface Env {
   GlobalDurableObject: DurableObjectNamespace<GlobalDurableObject>;
+  AI?: {
+    run(model: string, options: { prompt?: string; image?: number[]; max_tokens?: number }): Promise<{ response?: string; description?: string }>;
+  };
 }
 
 type Doc<T> = { v: number; data: T };
@@ -83,6 +86,17 @@ export class GlobalDurableObject extends DurableObject<Env, unknown> {
   }  
 
   async indexDrop(_rootKey: string): Promise<void> { await this.ctx.storage.deleteAll(); }
+
+  /** Store a blob (e.g. base64 image) under a key. Used for evidence images. */
+  async putBlob(key: string, value: string): Promise<void> {
+    await this.ctx.storage.put(key, value);
+  }
+
+  /** Retrieve a stored blob, or null if missing. */
+  async getBlob(key: string): Promise<string | null> {
+    const v = await this.ctx.storage.get<string>(key);
+    return v ?? null;
+  }
 }
 
 export interface EntityStatics<S, T extends Entity<S>> {

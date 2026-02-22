@@ -57,10 +57,12 @@ export default {
         glow: '0 0 20px 5px rgba(14, 165, 233, 0.3)'
   		},
   		keyframes: {
-  			'fade-in': { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
+  			'fade-in': { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+  			'ticker': { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-50%)' } }
   		},
   		animation: {
-  			'fade-in': 'fade-in 0.6s ease-out'
+  			'fade-in': 'fade-in 0.6s ease-out',
+  			'ticker': 'ticker 45s linear infinite'
   		}
   	}
   },

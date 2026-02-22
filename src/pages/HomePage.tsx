@@ -23,7 +23,7 @@ const MOCK_CHART_DATA = [
 ];
 const APP_VERSION = "1.0.0";
 export function HomePage() {
-  const { data: stats, isLoading, isFetching, isError, refetch } = useQuery<DashboardStats>({
+  const { data: stats, isLoading, isFetching, isError, error, refetch } = useQuery<DashboardStats>({
     queryKey: ["dashboard-stats"],
     queryFn: () => api<DashboardStats>("/api/dashboard/stats"),
     retry: 1,
@@ -67,6 +67,11 @@ export function HomePage() {
           <p className="text-muted-foreground mt-2 max-w-md mx-auto">
             We couldn't synchronize the clinical census with the v{APP_VERSION} backend.
           </p>
+          {error && (
+            <p className="mt-3 text-sm font-mono text-red-600 bg-red-50 px-3 py-2 rounded max-w-lg break-words">
+              {error instanceof Error ? error.message : String(error)}
+            </p>
+          )}
           <Button onClick={() => refetch()} className="mt-6 bg-medical-blue hover:bg-medical-blue/90 gap-2">
             <RefreshCcw className="w-4 h-4" /> Re-sync Dashboard
           </Button>
