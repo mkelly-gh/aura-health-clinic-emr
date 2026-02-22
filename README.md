@@ -1,6 +1,6 @@
 # Aura Health EMR
 
-[![[cloudflarebutton]]](https://deploy.workers.cloudflare.com)
+[![[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/mkelly-gh/aura-health-clinic-emr)]](https://deploy.workers.cloudflare.com)
 
 A production-ready full-stack application built on Cloudflare Workers, featuring a reactive frontend with React, TanStack Query, and shadcn/ui, powered by Durable Objects for scalable stateful storage.
 
@@ -115,7 +115,7 @@ Frontend uses `src/lib/api-client.ts` for typed fetches.
    bun run deploy
    ```
 
-   Or via UI: [![[cloudflarebutton]]](https://deploy.workers.cloudflare.com)
+   Or via UI: [![[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/mkelly-gh/aura-health-clinic-emr)]](https://deploy.workers.cloudflare.com)
 
 3. **Custom Domain** (optional):
    ```
