@@ -4,16 +4,28 @@ import { UserEntity, ChatBoardEntity, PatientEntity } from "./entities";
 import { ok, bad, notFound, isStr } from './core-utils';
 export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.get('/api/dashboard/stats', async (c) => {
-    await PatientEntity.ensureSeed(c.env);
-    const stats = await PatientEntity.getStats(c.env);
-    return ok(c, stats);
+    try {
+      await PatientEntity.ensureSeed(c.env);
+      const stats = await PatientEntity.getStats(c.env);
+      return ok(c, stats);
+    } catch (e) {
+      console.error("Dashboard stats error:", e);
+      return bad(c, "Failed to retrieve clinical metrics");
+    }
   });
   app.get('/api/patients', async (c) => {
-    await PatientEntity.ensureSeed(c.env);
-    const cq = c.req.query('cursor');
-    const lq = c.req.query('limit');
-    const page = await PatientEntity.list(c.env, cq ?? null, lq ? Math.max(1, (Number(lq) | 0)) : undefined);
-    return ok(c, page);
+    try {
+      await PatientEntity.ensureSeed(c.env);
+      const cq = c.req.query('cursor');
+      const lq = c.req.query('limit');
+      // Limit to 40 to stay well within 50-subrequest threshold
+      const limit = lq ? Math.min(40, Math.max(1, Number(lq) | 0)) : 40;
+      const page = await PatientEntity.list(c.env, cq ?? null, limit);
+      return ok(c, page);
+    } catch (e) {
+      console.error("Patients list error:", e);
+      return bad(c, "Failed to retrieve patient registry");
+    }
   });
   app.get('/api/patients/:id', async (c) => {
     const id = c.req.param('id');
@@ -23,9 +35,7 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   });
   app.get('/api/users', async (c) => {
     await UserEntity.ensureSeed(c.env);
-    const cq = c.req.query('cursor');
-    const lq = c.req.query('limit');
-    const page = await UserEntity.list(c.env, cq ?? null, lq ? Math.max(1, (Number(lq) | 0)) : undefined);
+    const page = await UserEntity.list(c.env, null, 10);
     return ok(c, page);
   });
   app.get('/api/chats', async (c) => {
