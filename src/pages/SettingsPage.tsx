@@ -5,28 +5,29 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Shield, 
-  Bell, 
-  Database, 
-  Globe, 
-  RefreshCcw, 
-  ShieldCheck, 
+import {
+  Shield,
+  Bell,
+  Database,
+  Globe,
+  RefreshCcw,
+  ShieldCheck,
   AlertCircle,
-  Activity
+  Activity,
+  Info
 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
+const APP_VERSION = "1.0.0";
 export default function SettingsPage() {
   const [isSyncing, setIsSyncing] = useState(false);
   const handleSystemReinit = async () => {
     setIsSyncing(true);
-    const toastId = toast.loading("Re-initializing clinical database...");
+    const toastId = toast.loading(`Re-initializing clinical database for v${APP_VERSION}...`);
     try {
-      // Manual trigger to ensure seed or refresh stats
       await api("/api/dashboard/stats");
-      toast.success("Medical records synchronized successfully", { id: toastId });
+      toast.success(`Medical records synchronized successfully (Core v${APP_VERSION})`, { id: toastId });
     } catch (error) {
       console.error("Sync error:", error);
       toast.error("Failed to re-initialize database index", { id: toastId });
@@ -36,17 +37,22 @@ export default function SettingsPage() {
   };
   const handleRunDiagnostics = () => {
     toast.promise(new Promise(resolve => setTimeout(resolve, 2000)), {
-      loading: 'Running system-wide EMR diagnostics...',
-      success: 'All clinical nodes are operating at 100% efficiency',
+      loading: `Running system-wide EMR v${APP_VERSION} diagnostics...`,
+      success: `All clinical nodes for v${APP_VERSION} are operating at 100% efficiency`,
       error: 'Diagnostic failure: check edge node connectivity',
     });
   };
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 lg:py-12">
       <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tighter text-foreground uppercase">Clinic Settings</h1>
-          <p className="text-muted-foreground font-medium">Configure your EMR system and facility-wide protocols.</p>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-extrabold tracking-tighter text-foreground uppercase">Clinic Settings</h1>
+            <p className="text-muted-foreground font-medium">Configure your EMR system and facility-wide protocols.</p>
+          </div>
+          <Badge variant="outline" className="w-fit font-mono text-[10px] bg-slate-50 px-2 py-0.5">
+            System Core v{APP_VERSION}
+          </Badge>
         </div>
         <div className="grid gap-6">
           <Card className="shadow-soft border-border bg-white overflow-hidden">
@@ -96,7 +102,7 @@ export default function SettingsPage() {
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Database className="w-5 h-5 text-medical-stable" /> EMR Infrastructure
               </CardTitle>
-              <CardDescription className="font-medium">System diagnostics and database health metrics.</CardDescription>
+              <CardDescription className="font-medium">System diagnostics and database health metrics for v{APP_VERSION}.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -114,7 +120,7 @@ export default function SettingsPage() {
                   <div className="flex items-center gap-3">
                     <Activity className="w-5 h-5 text-slate-500 group-hover:text-medical-blue transition-colors" />
                     <div>
-                      <p className="text-xs font-extrabold uppercase tracking-tight">Latent Latency</p>
+                      <p className="text-xs font-extrabold uppercase tracking-tight">System Latency</p>
                       <p className="text-sm font-semibold text-slate-700">12ms • Optimized</p>
                     </div>
                   </div>
@@ -127,14 +133,14 @@ export default function SettingsPage() {
                   <div>
                     <h4 className="font-bold text-sm text-slate-900">System Integrity Verified</h4>
                     <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-sm">
-                      All Durable Object storage nodes are synchronized. Last full parity check performed 12 minutes ago.
+                      Build Version: {APP_VERSION} • Production Ready. All Durable Object storage nodes are synchronized for the current deployment.
                     </p>
                   </div>
                 </div>
                 <div className="flex gap-2 shrink-0">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={handleRunDiagnostics}
                     className="font-bold border-medical-blue/20 text-medical-blue hover:bg-medical-blue/10 rounded-lg"
                   >
@@ -143,14 +149,14 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-slate-100">
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   className="font-bold text-slate-600 hover:text-medical-urgent hover:bg-red-50"
-                  onClick={() => toast.info("System logs exported to local secure storage")}
+                  onClick={() => toast.info(`System logs exported for v${APP_VERSION}`)}
                 >
                   Export System Logs
                 </Button>
-                <Button 
+                <Button
                   disabled={isSyncing}
                   onClick={handleSystemReinit}
                   className="bg-medical-blue hover:bg-medical-blue/90 text-white font-bold px-6 shadow-primary min-w-[180px]"
@@ -163,7 +169,7 @@ export default function SettingsPage() {
           </Card>
           <div className="flex items-center justify-center gap-2 p-6 text-muted-foreground opacity-40">
             <ShieldCheck className="w-4 h-4" />
-            <span className="text-[10px] font-extrabold uppercase tracking-widest">Aura Health EMR • End-to-End Encryption Enabled</span>
+            <span className="text-[10px] font-extrabold uppercase tracking-widest">Aura Health EMR v{APP_VERSION} • End-to-End Encryption Enabled</span>
           </div>
         </div>
       </div>

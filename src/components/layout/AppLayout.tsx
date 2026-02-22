@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { 
-  LayoutDashboard, 
-  Users, 
-  MessageSquare, 
-  Settings, 
-  Search, 
-  Bell, 
-  User as UserIcon, 
-  ShieldCheck, 
+import {
+  LayoutDashboard,
+  Users,
+  MessageSquare,
+  Settings,
+  Search,
+  Bell,
+  User as UserIcon,
+  ShieldCheck,
   RefreshCw,
   Menu,
   X
@@ -19,14 +19,14 @@ import { Button } from "@/components/ui/button";
 import { useIsFetching } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { format } from "date-fns";
 const NAV_ITEMS = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
   { name: 'Patient Registry', icon: Users, path: '/patients' },
   { name: 'Patient Portal', icon: MessageSquare, path: '/portal' },
   { name: 'Clinic Settings', icon: Settings, path: '/settings' },
 ];
-const APP_VERSION = "v2.5.3";
-const BUILD_DATE = "MAY 2024";
+const APP_VERSION = "1.0.0";
 interface SidebarProps {
   onItemClick?: () => void;
   className?: string;
@@ -72,7 +72,7 @@ export function SidebarContent({ onItemClick, className }: SidebarProps) {
           <div className="w-2 h-2 rounded-full bg-medical-stable animate-pulse" />
           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em]">Clinical Node: LIVE</span>
         </div>
-        <p className="text-[10px] text-muted-foreground font-bold opacity-60">EMR Core {APP_VERSION} • SECURE</p>
+        <p className="text-[10px] text-muted-foreground font-bold opacity-60">EMR Core v{APP_VERSION} • SECURE</p>
       </div>
     </div>
   );
@@ -80,16 +80,15 @@ export function SidebarContent({ onItemClick, className }: SidebarProps) {
 export function AppLayout() {
   const isFetching = useIsFetching();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const currentDate = format(new Date(), "yyyy-MM-dd");
   return (
     <div className="flex h-screen bg-slate-50/50 overflow-hidden font-sans">
-      {/* Desktop Sidebar */}
       <div className="hidden lg:block w-64 border-r bg-white shadow-sm shrink-0">
         <SidebarContent />
       </div>
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="h-16 border-b bg-white flex items-center justify-between px-4 sm:px-8 z-30 shadow-sm shrink-0">
           <div className="flex items-center gap-4 flex-1 max-w-md">
-            {/* Mobile Navigation Trigger */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="lg:hidden shrink-0">
@@ -119,8 +118,8 @@ export function AppLayout() {
               <RefreshCw className="w-3.5 h-3.5 text-medical-blue animate-spin" />
               <span className="text-[10px] font-bold text-medical-blue uppercase tracking-tighter">Syncing</span>
             </div>
-            <Badge variant="outline" className="hidden xl:flex bg-medical-blue/5 border-medical-blue/20 text-medical-blue text-[10px] font-bold px-2 py-0.5 tracking-tight shrink-0">
-              EMR {APP_VERSION}
+            <Badge variant="outline" className="hidden md:flex bg-medical-blue/5 border-medical-blue/20 text-medical-blue text-[10px] font-bold px-2.5 py-1 tracking-tight shrink-0">
+              v{APP_VERSION} • {currentDate}
             </Badge>
             <Button variant="ghost" size="icon" className="relative hover:bg-slate-100 h-9 w-9 sm:h-10 sm:w-10 rounded-xl transition-colors shrink-0">
               <Bell className="w-5 h-5 text-slate-600" />

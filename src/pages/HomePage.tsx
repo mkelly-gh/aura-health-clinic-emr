@@ -4,7 +4,7 @@ import { api } from "@/lib/api-client";
 import { DashboardStats } from "@shared/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Users, AlertCircle, LogOut, ChevronRight, Play, TrendingUp, RefreshCcw } from "lucide-react";
+import { Activity, Users, AlertCircle, LogOut, ChevronRight, Play, TrendingUp, RefreshCcw, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
@@ -12,10 +12,17 @@ import { Button } from "@/components/ui/button";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import {
+  Tooltip as ShadTooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 const MOCK_CHART_DATA = [
   { name: 'Mon', volume: 42 }, { name: 'Tue', volume: 45 }, { name: 'Wed', volume: 38 },
   { name: 'Thu', volume: 51 }, { name: 'Fri', volume: 48 }, { name: 'Sat', volume: 55 }, { name: 'Sun', volume: 50 },
 ];
+const APP_VERSION = "1.0.0";
 export function HomePage() {
   const { data: stats, isLoading, isFetching, isError, refetch } = useQuery<DashboardStats>({
     queryKey: ["dashboard-stats"],
@@ -58,7 +65,7 @@ export function HomePage() {
           </div>
           <h2 className="text-2xl font-bold">System Connection Interrupted</h2>
           <p className="text-muted-foreground mt-2 max-w-md mx-auto">
-            We couldn't synchronize the clinical census. Please try again.
+            We couldn't synchronize the clinical census with the v{APP_VERSION} backend.
           </p>
           <Button onClick={() => refetch()} className="mt-6 bg-medical-blue hover:bg-medical-blue/90 gap-2">
             <RefreshCcw className="w-4 h-4" /> Re-sync Dashboard
@@ -71,20 +78,34 @@ export function HomePage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 lg:py-12 animate-fade-in">
       <div className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-extrabold tracking-tighter text-foreground uppercase">Clinical Command</h1>
-            <p className="text-muted-foreground font-medium">Facility status and real-time clinical throughput.</p>
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-extrabold tracking-tighter text-foreground uppercase">Clinical Command</h1>
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-medical-stable animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                <p className="text-muted-foreground font-bold text-xs uppercase tracking-widest">Aura v{APP_VERSION} • LIVE DATA</p>
+              </div>
+            </div>
           </div>
           <div className="flex gap-3">
-            <Button 
-              variant="outline" 
-              onClick={() => refetch()} 
-              disabled={isFetching}
-              className="shadow-sm active:scale-95 transition-transform bg-white min-w-[120px]"
-            >
-              <RefreshCcw className={cn("w-4 h-4 mr-2", isFetching && "animate-spin")} />
-              {isFetching ? "Syncing..." : "Refresh Data"}
-            </Button>
+            <TooltipProvider>
+              <ShadTooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={() => refetch()}
+                    disabled={isFetching}
+                    className="shadow-sm active:scale-95 transition-transform bg-white min-w-[120px]"
+                  >
+                    <RefreshCcw className={cn("w-4 h-4 mr-2", isFetching && "animate-spin")} />
+                    {isFetching ? "Syncing..." : "Refresh Data"}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-[10px] font-bold">Connected to EMR v{APP_VERSION}</p>
+                </TooltipContent>
+              </ShadTooltip>
+            </TooltipProvider>
             <Button className="bg-medical-blue hover:bg-medical-blue/90 text-white shadow-primary active:scale-95 transition-all">New Admission</Button>
           </div>
         </div>
@@ -120,7 +141,7 @@ export function HomePage() {
             <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
               <CardTitle className="text-lg font-bold">Facility Volume Trend</CardTitle>
               <Badge variant="secondary" className="text-[9px] font-extrabold uppercase bg-medical-blue/10 text-medical-blue border-none tracking-widest px-2 py-0.5">
-                7-Day Analysis
+                v{APP_VERSION} Analysis
               </Badge>
             </CardHeader>
             <CardContent className="pt-6">
@@ -134,25 +155,25 @@ export function HomePage() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis 
-                      dataKey="name" 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }} 
-                      dy={10} 
+                    <XAxis
+                      dataKey="name"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }}
+                      dy={10}
                     />
-                    <YAxis 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }} 
-                      dx={-10} 
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }}
+                      dx={-10}
                     />
                     <Tooltip
                       cursor={{ stroke: '#0EA5E9', strokeWidth: 1, strokeDasharray: '4 4' }}
-                      contentStyle={{ 
-                        borderRadius: '12px', 
-                        border: '1px solid #e2e8f0', 
-                        boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', 
+                      contentStyle={{
+                        borderRadius: '12px',
+                        border: '1px solid #e2e8f0',
+                        boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
                         padding: '12px',
                         backgroundColor: 'rgba(255, 255, 255, 0.95)',
                         backdropFilter: 'blur(4px)'
@@ -160,13 +181,13 @@ export function HomePage() {
                       labelStyle={{ fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}
                       formatter={(value) => [`${value} Patients`, 'Census Volume']}
                     />
-                    <Area 
-                      type="basis" 
-                      dataKey="volume" 
-                      stroke="#0EA5E9" 
-                      strokeWidth={3} 
-                      fillOpacity={1} 
-                      fill="url(#colorVolume)" 
+                    <Area
+                      type="basis"
+                      dataKey="volume"
+                      stroke="#0EA5E9"
+                      strokeWidth={3}
+                      fillOpacity={1}
+                      fill="url(#colorVolume)"
                       animationDuration={1500}
                     />
                   </AreaChart>
@@ -177,7 +198,7 @@ export function HomePage() {
           <Card className="shadow-soft overflow-hidden border-border h-full bg-white flex flex-col">
             <CardHeader className="bg-medical-blue text-white pb-6 shrink-0">
               <CardTitle className="text-lg font-bold">Rapid Response</CardTitle>
-              <p className="text-sm text-white/80 font-medium">Critical protocols and shortcuts.</p>
+              <p className="text-sm text-white/80 font-medium">Standard EMR Core {APP_VERSION}</p>
             </CardHeader>
             <CardContent className="p-0 flex-1">
               <div className="bg-white rounded-t-2xl -mt-3 p-5 space-y-3 relative z-10 flex-1">
@@ -219,8 +240,8 @@ export function HomePage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-10 gap-y-6">
                   {stats.recentActivity.map((activity) => (
-                    <div 
-                      key={activity.id} 
+                    <div
+                      key={activity.id}
                       className="flex items-center gap-4 group p-3 rounded-2xl transition-all border border-transparent hover:bg-slate-50 hover:border-slate-200 hover:scale-[1.01] cursor-pointer"
                     >
                       <Avatar className="w-12 h-12 shadow-sm group-hover:shadow-primary/20 transition-all shrink-0 border-2 border-white">
