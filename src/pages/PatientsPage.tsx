@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Search, RefreshCw, AlertTriangle, UserPlus, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -102,7 +103,6 @@ export default function PatientsPage() {
                     <TableCell colSpan={6} className="text-center py-24">
                       <div className="max-w-xs mx-auto text-muted-foreground">
                         <p className="text-sm font-medium">No records found matching your query.</p>
-                        {search === "" && <p className="text-xs mt-1">If this is the first run, the system may still be seeding the database.</p>}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -116,9 +116,17 @@ export default function PatientsPage() {
                       {patient.mrn}
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-slate-900 group-hover:text-medical-blue transition-colors">{patient.name}</span>
-                        <span className="text-[10px] text-muted-foreground font-medium">{patient.gender.charAt(0)} • {patient.age}Y</span>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-10 h-10 border border-slate-100">
+                          <AvatarImage src={patient.avatarUrl} alt={patient.name} />
+                          <AvatarFallback className="bg-slate-100 text-slate-500 font-bold text-xs">
+                            {patient.name.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-slate-900 group-hover:text-medical-blue transition-colors">{patient.name}</span>
+                          <span className="text-[10px] text-muted-foreground font-medium">{patient.gender.charAt(0)} • {patient.age}Y</span>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>

@@ -26,6 +26,7 @@ export interface Patient {
   ssn: string;
   email: string;
   phone: string;
+  avatarUrl: string;
 }
 export interface DashboardStats {
   census: number;
@@ -36,6 +37,7 @@ export interface DashboardStats {
     id: string;
     patientId: string;
     patientName: string;
+    patientAvatar?: string;
     type: 'Status Change' | 'New Diagnosis' | 'Treatment Started';
     description: string;
     timestamp: number;

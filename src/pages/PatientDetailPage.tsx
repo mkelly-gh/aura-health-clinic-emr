@@ -6,6 +6,7 @@ import { Patient } from "@shared/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
@@ -57,23 +58,31 @@ export default function PatientDetailPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 lg:py-12 animate-fade-in">
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="hover:bg-slate-200">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="hover:bg-slate-200 hidden sm:inline-flex">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div className="flex-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900">{patient.name}</h1>
-              <Badge variant="outline" className={cn("px-2 py-0.5 font-bold uppercase text-[10px]", getStatusColor(patient.status))}>
-                {patient.status}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1 font-medium">
-              <span className="font-mono text-medical-blue">{patient.mrn}</span>
-              <span>•</span>
-              <span>{patient.gender}, {patient.age}y</span>
-              <span>•</span>
-              <span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] text-slate-600 uppercase tracking-tighter">DOB: Jan 15, {birthYear}</span>
+          <div className="flex-1 flex items-center gap-4">
+            <Avatar className="w-16 h-16 border-2 border-white shadow-soft shrink-0">
+              <AvatarImage src={patient.avatarUrl} alt={patient.name} />
+              <AvatarFallback className="bg-medical-blue text-white font-bold text-xl">
+                {patient.name.split(' ').map(n => n[0]).join('')}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold tracking-tight text-slate-900">{patient.name}</h1>
+                <Badge variant="outline" className={cn("px-2 py-0.5 font-bold uppercase text-[10px]", getStatusColor(patient.status))}>
+                  {patient.status}
+                </Badge>
+              </div>
+              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-1 font-medium">
+                <span className="font-mono text-medical-blue">{patient.mrn}</span>
+                <span className="hidden sm:inline">•</span>
+                <span>{patient.gender}, {patient.age}y</span>
+                <span className="hidden sm:inline">•</span>
+                <span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] text-slate-600 uppercase tracking-tighter">DOB: Jan 15, {birthYear}</span>
+              </div>
             </div>
           </div>
           <div className="flex gap-2">

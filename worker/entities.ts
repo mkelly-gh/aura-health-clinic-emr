@@ -13,7 +13,7 @@ export class PatientEntity extends IndexedEntity<Patient> {
   static readonly indexName = "patients";
   static readonly initialState: Patient = {
     id: "", mrn: "", name: "", age: 0, gender: "Other", status: "Stable",
-    lastVisit: "", primaryDiagnosis: { code: "", description: "" }, ssn: "", email: "", phone: ""
+    lastVisit: "", primaryDiagnosis: { code: "", description: "" }, ssn: "", email: "", phone: "", avatarUrl: ""
   };
   static seedData = generateMockPatients(50);
   /**
@@ -41,6 +41,7 @@ export class PatientEntity extends IndexedEntity<Patient> {
       id: crypto.randomUUID(),
       patientId: p.id,
       patientName: p.name,
+      patientAvatar: p.avatarUrl,
       type: 'Status Change' as const,
       description: `Clinical status confirmed as ${p.status}`,
       timestamp: Date.now() - Math.random() * 1000 * 60 * 60 * 4

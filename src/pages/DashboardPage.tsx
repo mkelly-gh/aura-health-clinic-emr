@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Activity, Users, AlertCircle, LogOut, ChevronRight, Play, TrendingUp, RefreshCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -165,9 +166,12 @@ export default function DashboardPage() {
                 <div className="space-y-6">
                   {stats.recentActivity.map((activity) => (
                     <div key={activity.id} className="flex items-center gap-4 group hover:bg-slate-50 p-2 rounded-lg transition-colors">
-                      <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-xs shrink-0 group-hover:bg-medical-blue group-hover:text-white transition-colors">
-                        {activity.patientName.charAt(0)}
-                      </div>
+                      <Avatar className="w-10 h-10 shadow-sm group-hover:scale-105 transition-transform shrink-0">
+                        <AvatarImage src={activity.patientAvatar ?? `https://i.pravatar.cc/150?u=${activity.patientId}`} />
+                        <AvatarFallback className="bg-slate-100 font-bold text-xs">
+                          {activity.patientName.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-4">
                           <Link to={`/patients/${activity.patientId}`} className="text-sm font-semibold hover:text-medical-blue hover:underline truncate">

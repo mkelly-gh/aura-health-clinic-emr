@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Send, User as UserIcon, Bot, Calendar, Pill, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -13,8 +15,7 @@ export default function PortalPage() {
   const [inputText, setInputText] = useState("");
   const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLDivElement>(null);
-  // For simulation, we assume Dr. Thorne is the current clinician (u1)
-  const currentUser = { id: 'u1', name: 'Dr. Thorne' };
+  const currentUser = { id: 'u1', name: 'Dr. Thorne', avatar: 'https://i.pravatar.cc/150?u=u1' };
   const { data: chats } = useQuery<{ items: Chat[] }>({
     queryKey: ["chats"],
     queryFn: () => api<{ items: Chat[] }>("/api/chats"),
@@ -34,13 +35,12 @@ export default function PortalPage() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["messages", activeChatId] });
-      // Simulate AI/Doctor response after user sends message
       setTimeout(() => {
         api<ChatMessage>(`/api/chats/${activeChatId}/messages`, {
           method: 'POST',
-          body: JSON.stringify({ 
-            userId: 'u2', 
-            text: "I've reviewed your latest clinical report. Everything looks stable, but please continue the current regimen. Do you have specific concerns about your medication?" 
+          body: JSON.stringify({
+            userId: 'aura-bot',
+            text: "I've reviewed your latest clinical report. Everything looks stable, but please continue the current regimen. Do you have specific concerns about your medication?"
           })
         }).then(() => {
           queryClient.invalidateQueries({ queryKey: ["messages", activeChatId] });
@@ -135,13 +135,17 @@ export default function PortalPage() {
                 ) : (
                   messages?.map((msg) => {
                     const isMe = msg.userId === currentUser.id;
+                    const isBot = msg.userId === 'aura-bot';
                     return (
                       <div key={msg.id} className={cn("flex gap-3", isMe ? "flex-row-reverse" : "")}>
-                        <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm", isMe ? "bg-slate-200" : "bg-medical-blue")}>
-                          {isMe ? <UserIcon className="w-4 h-4 text-slate-600" /> : <Bot className="w-4 h-4 text-white" />}
-                        </div>
+                        <Avatar className="w-8 h-8 rounded-lg shadow-sm">
+                          <AvatarImage src={isMe ? currentUser.avatar : isBot ? '' : `https://i.pravatar.cc/150?u=${msg.userId}`} />
+                          <AvatarFallback className={isMe ? "bg-slate-200" : "bg-medical-blue text-white"}>
+                            {isBot ? <Bot className="w-4 h-4" /> : <UserIcon className="w-4 h-4" />}
+                          </AvatarFallback>
+                        </Avatar>
                         <div className={cn(
-                          "max-w-[85%] rounded-2xl p-4 shadow-soft text-sm leading-relaxed", 
+                          "max-w-[85%] rounded-2xl p-4 shadow-soft text-sm leading-relaxed",
                           isMe ? "bg-medical-blue text-white rounded-tr-none" : "bg-white text-slate-700 border border-slate-200 rounded-tl-none"
                         )}>
                           <p>{msg.text}</p>
@@ -167,10 +171,10 @@ export default function PortalPage() {
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                 />
-                <Button 
-                  size="icon" 
-                  type="submit" 
-                  disabled={sendMutation.isPending || !inputText.trim()} 
+                <Button
+                  size="icon"
+                  type="submit"
+                  disabled={sendMutation.isPending || !inputText.trim()}
                   className="bg-medical-blue hover:bg-medical-blue/90 text-white shrink-0 shadow-primary"
                 >
                   <Send className="w-4 h-4" />

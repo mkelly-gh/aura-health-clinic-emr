@@ -36,7 +36,8 @@ export function generateMockPatients(count: number = 50): Patient[] {
       primaryDiagnosis: getRandom(ICD10_DIAGNOSES),
       ssn: `XXX-XX-${1000 + i}`,
       email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@example.com`,
-      phone: `(555) ${100 + Math.floor(Math.random() * 900)}-${1000 + Math.floor(Math.random() * 9000)}`
+      phone: `(555) ${100 + Math.floor(Math.random() * 900)}-${1000 + Math.floor(Math.random() * 9000)}`,
+      avatarUrl: `https://i.pravatar.cc/150?u=${id}`
     });
   }
   return patients;
