@@ -4,18 +4,17 @@ import { api } from "@/lib/api-client";
 import { DashboardStats } from "@shared/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Activity, Users, AlertCircle, LogOut, ChevronRight, Play, TrendingUp, RefreshCcw, Info } from "lucide-react";
+import { Activity, Users, AlertCircle, LogOut, ChevronRight, Play, TrendingUp, RefreshCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import {
   Tooltip as ShadTooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 const MOCK_CHART_DATA = [
@@ -88,24 +87,22 @@ export function HomePage() {
             </div>
           </div>
           <div className="flex gap-3">
-            <TooltipProvider>
-              <ShadTooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    onClick={() => refetch()}
-                    disabled={isFetching}
-                    className="shadow-sm active:scale-95 transition-transform bg-white min-w-[120px]"
-                  >
-                    <RefreshCcw className={cn("w-4 h-4 mr-2", isFetching && "animate-spin")} />
-                    {isFetching ? "Syncing..." : "Refresh Data"}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-[10px] font-bold">Connected to EMR v{APP_VERSION}</p>
-                </TooltipContent>
-              </ShadTooltip>
-            </TooltipProvider>
+            <ShadTooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  onClick={() => refetch()}
+                  disabled={isFetching}
+                  className="shadow-sm active:scale-95 transition-transform bg-white min-w-[120px]"
+                >
+                  <RefreshCcw className={cn("w-4 h-4 mr-2", isFetching && "animate-spin")} />
+                  {isFetching ? "Syncing..." : "Refresh Data"}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-[10px] font-bold">Connected to EMR v{APP_VERSION}</p>
+              </TooltipContent>
+            </ShadTooltip>
             <Button className="bg-medical-blue hover:bg-medical-blue/90 text-white shadow-primary active:scale-95 transition-all">New Admission</Button>
           </div>
         </div>
@@ -168,7 +165,7 @@ export function HomePage() {
                       tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }}
                       dx={-10}
                     />
-                    <Tooltip
+                    <RechartsTooltip
                       cursor={{ stroke: '#0EA5E9', strokeWidth: 1, strokeDasharray: '4 4' }}
                       contentStyle={{
                         borderRadius: '12px',
@@ -235,7 +232,7 @@ export function HomePage() {
               <CardTitle className="text-lg font-bold">Recent Clinical Activity</CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
-              {stats.recentActivity.length === 0 ? (
+              {!stats.recentActivity || stats.recentActivity.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground italic font-medium">No recent activity recorded.</div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-10 gap-y-6">
