@@ -13,10 +13,37 @@ export interface Treatment {
   name: string;
   startDate: string;
   dosage: string;
+  status: 'Active' | 'Completed' | 'Discontinued';
+}
+export interface Vitals {
+  bp: string;
+  hr: number;
+  temp: number;
+  spo2: number;
+  weight: number;
+  recordedAt: string;
+}
+export interface MedicalHistoryItem {
+  condition: string;
+  date: string;
+  status: 'Resolved' | 'Chronic' | 'Under Treatment';
+}
+export interface Evidence {
+  id: string;
+  name: string;
+  type: string;
+  url: string;
+  date: string;
+}
+export interface ClinicalRecord {
+  history: MedicalHistoryItem[];
+  medications: Treatment[];
+  vitals: Vitals[];
+  evidence: Evidence[];
 }
 export interface Patient {
   id: string;
-  mrn: string; // Medical Record Number
+  mrn: string;
   name: string;
   age: number;
   gender: 'Male' | 'Female' | 'Other';
@@ -27,18 +54,19 @@ export interface Patient {
   email: string;
   phone: string;
   avatarUrl: string;
+  clinicalRecord: ClinicalRecord;
 }
 export interface DashboardStats {
   census: number;
   urgentCount: number;
   dischargedToday: number;
-  volumeTrend: number; // percentage change
+  volumeTrend: number;
   recentActivity: Array<{
     id: string;
     patientId: string;
     patientName: string;
     patientAvatar?: string;
-    type: 'Status Change' | 'New Diagnosis' | 'Treatment Started';
+    type: 'Status Change' | 'New Diagnosis' | 'Treatment Started' | 'Lab Upload';
     description: string;
     timestamp: number;
   }>;
@@ -50,6 +78,7 @@ export interface User {
 export interface Chat {
   id: string;
   title: string;
+  patientId?: string; // Associated patient context for Q&A
 }
 export interface ChatMessage {
   id: string;

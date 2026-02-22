@@ -9,7 +9,6 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
       const stats = await PatientEntity.getStats(c.env);
       return ok(c, stats);
     } catch (e) {
-      console.error("Dashboard stats error:", e);
       return bad(c, "Failed to retrieve clinical metrics");
     }
   });
@@ -17,26 +16,33 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
     try {
       await PatientEntity.ensureSeed(c.env);
       const cq = c.req.query('cursor');
-      const lq = c.req.query('limit');
-      // Limit to 40 to stay well within 50-subrequest threshold
-      const limit = lq ? Math.min(40, Math.max(1, Number(lq) | 0)) : 40;
-      const page = await PatientEntity.list(c.env, cq ?? null, limit);
+      const page = await PatientEntity.list(c.env, cq ?? null, 40);
       return ok(c, page);
     } catch (e) {
-      console.error("Patients list error:", e);
       return bad(c, "Failed to retrieve patient registry");
     }
   });
   app.get('/api/patients/:id', async (c) => {
-    const id = c.req.param('id');
-    const patient = new PatientEntity(c.env, id);
+    const patient = new PatientEntity(c.env, c.req.param('id'));
     if (!await patient.exists()) return notFound(c, 'Patient not found');
     return ok(c, await patient.getState());
   });
-  app.get('/api/users', async (c) => {
-    await UserEntity.ensureSeed(c.env);
-    const page = await UserEntity.list(c.env, null, 10);
-    return ok(c, page);
+  app.put('/api/patients/:id/evidence', async (c) => {
+    const id = c.req.param('id');
+    const { name, type } = (await c.req.json()) as { name: string; type: string };
+    const patient = new PatientEntity(c.env, id);
+    if (!await patient.exists()) return notFound(c, 'Patient not found');
+    await patient.mutate(s => ({
+      ...s,
+      clinicalRecord: {
+        ...s.clinicalRecord,
+        evidence: [
+          ...s.clinicalRecord.evidence,
+          { id: crypto.randomUUID(), name, type, url: "#", date: new Date().toISOString() }
+        ]
+      }
+    }));
+    return ok(c, { success: true });
   });
   app.get('/api/chats', async (c) => {
     await ChatBoardEntity.ensureSeed(c.env);
@@ -46,14 +52,21 @@ export function userRoutes(app: Hono<{ Bindings: Env }>) {
   app.get('/api/chats/:chatId/messages', async (c) => {
     const chat = new ChatBoardEntity(c.env, c.req.param('chatId'));
     if (!await chat.exists()) return notFound(c, 'chat not found');
-    return ok(c, await chat.listMessages());
+    const state = await chat.getState();
+    return ok(c, state.messages ?? []);
   });
   app.post('/api/chats/:chatId/messages', async (c) => {
     const chatId = c.req.param('chatId');
     const { userId, text } = (await c.req.json()) as { userId?: string; text?: string };
     if (!isStr(userId) || !text?.trim()) return bad(c, 'userId and text required');
-    const chat = new ChatBoardEntity(c.env, chatId);
-    if (!await chat.exists()) return notFound(c, 'chat not found');
-    return ok(c, await chat.sendMessage(userId, text.trim()));
+    const chatEntity = new ChatBoardEntity(c.env, chatId);
+    if (!await chatEntity.exists()) return notFound(c, 'chat not found');
+    const userMsg = await chatEntity.sendMessage(userId, text.trim());
+    // Trigger AI response simulation
+    const chatState = await chatEntity.getState();
+    const patientContextId = chatState.patientId || 'p-1';
+    const aiResponseText = await PatientEntity.generateRecordAwareResponse(c.env, patientContextId, text);
+    const aiMsg = await chatEntity.sendMessage('aura-bot', aiResponseText);
+    return ok(c, { userMsg, aiMsg });
   });
 }
