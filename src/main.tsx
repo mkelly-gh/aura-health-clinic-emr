@@ -1,7 +1,7 @@
 import '@/lib/errorReporter';
 import { enableMapSet } from "immer";
 enableMapSet();
-import React, { StrictMode } from 'react'
+import React from 'react'
 import { createRoot } from 'react-dom/client'
 import {
   createBrowserRouter,
@@ -21,36 +21,36 @@ const queryClient = new QueryClient();
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <AppLayout><HomePage /></AppLayout>,
+    element: <AppLayout />,
     errorElement: <RouteErrorBoundary />,
-  },
-  {
-    path: "/patients",
-    element: <AppLayout><PatientsPage /></AppLayout>,
-    errorElement: <RouteErrorBoundary />,
-  },
-  {
-    path: "/patients/:id",
-    element: <AppLayout><PatientDetailPage /></AppLayout>,
-    errorElement: <RouteErrorBoundary />,
-  },
-  {
-    path: "/portal",
-    element: <AppLayout><PortalPage /></AppLayout>,
-    errorElement: <RouteErrorBoundary />,
-  },
-  {
-    path: "/settings",
-    element: <AppLayout><SettingsPage /></AppLayout>,
-    errorElement: <RouteErrorBoundary />,
+    children: [
+      {
+        index: true,
+        element: <HomePage />
+      },
+      {
+        path: "patients",
+        element: <PatientsPage />
+      },
+      {
+        path: "patients/:id",
+        element: <PatientDetailPage />
+      },
+      {
+        path: "portal",
+        element: <PortalPage />
+      },
+      {
+        path: "settings",
+        element: <SettingsPage />
+      }
+    ]
   }
 ]);
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <ErrorBoundary>
-        <RouterProvider router={router} />
-      </ErrorBoundary>
-    </QueryClientProvider>
-  </StrictMode>,
+  <QueryClientProvider client={queryClient}>
+    <ErrorBoundary>
+      <RouterProvider router={router} />
+    </ErrorBoundary>
+  </QueryClientProvider>
 )

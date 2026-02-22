@@ -12,7 +12,7 @@ import {
   Menu,
   X
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, Outlet } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -77,7 +77,7 @@ export function SidebarContent({ onItemClick, className }: SidebarProps) {
     </div>
   );
 }
-export function AppLayout({ children }: { children: React.ReactNode }) {
+export function AppLayout() {
   const isFetching = useIsFetching();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   return (
@@ -139,7 +139,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
         <main className="flex-1 overflow-y-auto bg-slate-50/40">
-          {children}
+          <Outlet />
         </main>
       </div>
     </div>
