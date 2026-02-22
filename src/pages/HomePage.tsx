@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
 import { DashboardStats } from "@shared/types";
@@ -27,13 +27,14 @@ export function HomePage() {
     queryKey: ["dashboard-stats"],
     queryFn: () => api<DashboardStats>("/api/dashboard/stats"),
     retry: 1,
+    refetchOnWindowFocus: false,
   });
-  const cards = stats ? [
+  const cards = useMemo(() => stats ? [
     { title: "Current Census", value: stats.census, icon: Users, color: "text-medical-blue", trend: "+2.5% vs avg", pulse: true },
     { title: "Urgent Care", value: stats.urgentCount, icon: AlertCircle, color: "text-medical-urgent", trend: "High Priority", pulse: false },
     { title: "Flow Velocity", value: `${stats.volumeTrend}%`, icon: Activity, color: "text-medical-blue", trend: "Stability Index", pulse: false },
     { title: "Discharged", value: stats.dischargedToday, icon: LogOut, color: "text-medical-stable", trend: "Processed", pulse: false },
-  ] : [];
+  ] : [], [stats]);
   if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 lg:py-12 animate-fade-in">
@@ -81,8 +82,8 @@ export function HomePage() {
             <div>
               <h1 className="text-3xl font-extrabold tracking-tighter text-foreground uppercase">Clinical Command</h1>
               <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-medical-stable animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                <p className="text-muted-foreground font-bold text-xs uppercase tracking-widest">Aura v{APP_VERSION} • LIVE DATA</p>
+                <div className={cn("w-2.5 h-2.5 rounded-full bg-medical-stable animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]", isFetching && "bg-medical-blue")} />
+                <p className="text-muted-foreground font-bold text-xs uppercase tracking-widest">Aura v{APP_VERSION} • {isFetching ? 'SYNCING...' : 'LIVE DATA'}</p>
               </div>
             </div>
           </div>
@@ -103,16 +104,21 @@ export function HomePage() {
                 <p className="text-[10px] font-bold">Connected to EMR v{APP_VERSION}</p>
               </TooltipContent>
             </ShadTooltip>
-            <Button className="bg-medical-blue hover:bg-medical-blue/90 text-white shadow-primary active:scale-95 transition-all">New Admission</Button>
+            <Link to="/patients">
+              <Button className="bg-medical-blue hover:bg-medical-blue/90 text-white shadow-primary active:scale-95 transition-all">New Admission</Button>
+            </Link>
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {cards.map((card) => (
-            <Card key={card.title} className="shadow-soft hover:shadow-md hover:-translate-y-1 transition-all duration-300 border-border group bg-white relative overflow-hidden">
+            <Card key={card.title} className={cn(
+              "shadow-soft hover:shadow-md hover:-translate-y-1 transition-all duration-300 border-border group bg-white relative overflow-hidden",
+              isFetching && "opacity-80"
+            )}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">{card.title}</CardTitle>
                 <div className={cn("p-2 rounded-lg bg-slate-50 transition-colors group-hover:bg-white", card.color)}>
-                  <card.icon className={cn("w-4 h-4", card.pulse && "animate-pulse")} />
+                  <card.icon className={cn("w-4 h-4", card.pulse && !isFetching && "animate-pulse")} />
                 </div>
               </CardHeader>
               <CardContent>
@@ -130,6 +136,7 @@ export function HomePage() {
                   <TrendingUp className="w-3 h-3 text-medical-stable" /> {card.trend}
                 </p>
               </CardContent>
+              {isFetching && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-medical-blue/20 animate-pulse" />}
             </Card>
           ))}
         </div>
@@ -173,19 +180,20 @@ export function HomePage() {
                         boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
                         padding: '12px',
                         backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        backdropFilter: 'blur(4px)'
+                        backdropFilter: 'blur(4px)',
+                        zIndex: 100
                       }}
                       labelStyle={{ fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}
                       formatter={(value) => [`${value} Patients`, 'Census Volume']}
                     />
                     <Area
-                      type="basis"
+                      type="monotone"
                       dataKey="volume"
                       stroke="#0EA5E9"
                       strokeWidth={3}
                       fillOpacity={1}
                       fill="url(#colorVolume)"
-                      animationDuration={1500}
+                      animationDuration={1000}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -195,22 +203,20 @@ export function HomePage() {
           <Card className="shadow-soft overflow-hidden border-border h-full bg-white flex flex-col">
             <CardHeader className="bg-medical-blue text-white pb-6 shrink-0">
               <CardTitle className="text-lg font-bold">Rapid Response</CardTitle>
-              <p className="text-sm text-white/80 font-medium">Standard EMR Core {APP_VERSION}</p>
+              <p className="text-sm text-white/80 font-medium">EMR Core {APP_VERSION}</p>
             </CardHeader>
             <CardContent className="p-0 flex-1">
               <div className="bg-white rounded-t-2xl -mt-3 p-5 space-y-3 relative z-10 flex-1">
-                <Button variant="outline" className="w-full justify-between hover:bg-red-50 hover:text-red-600 hover:border-red-200 border-slate-100 h-12 rounded-xl transition-all group active:scale-[0.98]">
+                <Button variant="outline" className="w-full justify-between hover:bg-red-50 hover:text-red-600 hover:border-red-200 border-slate-100 h-12 rounded-xl transition-all group">
                   <span className="font-bold text-sm">Emergency Triage</span>
                   <Play className="w-4 h-4 text-medical-urgent fill-current group-hover:scale-110 transition-transform" />
                 </Button>
-                <Button variant="outline" className="w-full justify-between hover:bg-medical-blue/5 hover:border-medical-blue/20 border-slate-100 h-12 rounded-xl transition-all group active:scale-[0.98]">
-                  <span className="font-bold text-sm text-slate-700">Census Audit</span>
-                  <ChevronRight className="w-4 h-4 text-medical-blue group-hover:translate-x-1 transition-transform" />
-                </Button>
-                <Button variant="outline" className="w-full justify-between hover:bg-medical-blue/5 border-slate-100 h-12 rounded-xl transition-all active:scale-[0.98]">
-                  <span className="font-bold text-sm text-slate-700">Lab Review</span>
-                  <Badge className="h-5 px-1.5 bg-medical-urgent text-white border-none text-[10px] font-bold shadow-sm">2 NEW</Badge>
-                </Button>
+                <Link to="/patients">
+                  <Button variant="outline" className="w-full justify-between hover:bg-medical-blue/5 hover:border-medical-blue/20 border-slate-100 h-12 rounded-xl transition-all group mt-3">
+                    <span className="font-bold text-sm text-slate-700">Census Audit</span>
+                    <ChevronRight className="w-4 h-4 text-medical-blue group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
                 <div className="pt-6 mt-4 border-t border-slate-100">
                   <p className="text-[10px] font-bold text-muted-foreground uppercase mb-4 tracking-[0.2em]">On-Call Staff</p>
                   <div className="flex -space-x-2.5">
@@ -235,7 +241,7 @@ export function HomePage() {
               {!stats.recentActivity || stats.recentActivity.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground italic font-medium">No recent activity recorded.</div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-10 gap-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
                   {stats.recentActivity.map((activity) => (
                     <div
                       key={activity.id}
@@ -244,7 +250,7 @@ export function HomePage() {
                       <Avatar className="w-12 h-12 shadow-sm group-hover:shadow-primary/20 transition-all shrink-0 border-2 border-white">
                         <AvatarImage src={activity.patientAvatar} />
                         <AvatarFallback className="bg-slate-100 font-extrabold text-xs text-slate-500">
-                          {activity.patientName.charAt(0)}
+                          {activity.patientName.split(' ').map(n => n[0]).join('')}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">

@@ -50,15 +50,21 @@ export class PatientEntity extends IndexedEntity<Patient> {
   }
   static async getStats(env: any): Promise<DashboardStats> {
     const { items: patients } = await this.list(env, null, 40);
-    const activity = patients.slice(0, 8).map(p => ({
-      id: crypto.randomUUID(),
-      patientId: p.id,
-      patientName: p.name,
-      patientAvatar: p.avatarUrl,
-      type: 'Status Change' as const,
-      description: `Confirmed status: ${p.status} for ${p.primaryDiagnosis.description}`,
-      timestamp: Date.now() - Math.random() * 1000 * 60 * 60 * 2
-    }));
+    // Create stable timestamps based on current hour to prevent jittering on refresh
+    const baseTime = new Date().setMinutes(0, 0, 0);
+    const activity = patients.slice(0, 8).map((p, index) => {
+      // Deterministic ID based on patient and index
+      const stableId = `act-${p.id}-${index}`;
+      return {
+        id: stableId,
+        patientId: p.id,
+        patientName: p.name,
+        patientAvatar: p.avatarUrl,
+        type: 'Status Change' as const,
+        description: `Confirmed status: ${p.status} for ${p.primaryDiagnosis.description}`,
+        timestamp: baseTime - (index * 1000 * 60 * 15) // Spread out by 15 mins
+      };
+    });
     return {
       census: patients.length,
       urgentCount: patients.filter(p => p.status === 'Urgent').length,
@@ -71,7 +77,7 @@ export class PatientEntity extends IndexedEntity<Patient> {
 export type ChatBoardState = Chat & { messages: ChatMessage[] };
 const SEED_CHAT_BOARDS: ChatBoardState[] = MOCK_CHATS.map(c => ({
   ...c,
-  patientId: 'p-1', // Default to Jill Valentine for demo
+  patientId: 'p-1',
   messages: MOCK_CHAT_MESSAGES.filter(m => m.chatId === c.id),
 }));
 export class ChatBoardEntity extends IndexedEntity<ChatBoardState> {

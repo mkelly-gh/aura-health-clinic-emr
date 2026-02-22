@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 export default function PortalPage() {
   const [inputText, setInputText] = useState("");
+  const [optimisticMessages, setOptimisticMessages] = useState<ChatMessage[]>([]);
   const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLDivElement>(null);
   const currentUser = { id: 'u1', name: 'Dr. Thorne' };
@@ -26,11 +27,11 @@ export default function PortalPage() {
     queryFn: () => api<Patient>(`/api/patients/${activeChat?.patientId}`),
     enabled: !!activeChat?.patientId,
   });
-  const { data: messages, isLoading: messagesLoading } = useQuery<ChatMessage[]>({
+  const { data: serverMessages, isLoading: messagesLoading } = useQuery<ChatMessage[]>({
     queryKey: ["messages", activeChat?.id],
     queryFn: () => api<ChatMessage[]>(`/api/chats/${activeChat?.id}/messages`),
     enabled: !!activeChat?.id,
-    refetchInterval: 3000,
+    refetchInterval: 5000,
   });
   const sendMutation = useMutation({
     mutationFn: (text: string) =>
@@ -38,22 +39,47 @@ export default function PortalPage() {
         method: 'POST',
         body: JSON.stringify({ userId: currentUser.id, text })
       }),
+    onMutate: async (newText) => {
+      // Optimistic update
+      const tempId = `temp-${Date.now()}`;
+      const optimisticMsg: ChatMessage = {
+        id: tempId,
+        chatId: activeChat?.id || '',
+        userId: currentUser.id,
+        text: newText,
+        ts: Date.now()
+      };
+      setOptimisticMessages(prev => [...prev, optimisticMsg]);
+      setInputText("");
+      setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+      return { tempId };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["messages", activeChat?.id] });
-      setInputText("");
+      setOptimisticMessages([]);
+    },
+    onError: () => {
+      setOptimisticMessages([]);
     }
   });
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, sendMutation.isPending]);
+  }, [serverMessages, optimisticMessages]);
+  const combinedMessages = [...(serverMessages ?? []), ...optimisticMessages];
   const QUICK_PROMPTS = [
     "Summarize current vitals",
     "Check medication adherence",
     "Explain latest lab results",
     "Review surgical history"
   ];
+  const handleSend = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (inputText.trim() && !sendMutation.isPending) {
+      sendMutation.mutate(inputText.trim());
+    }
+  };
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 lg:py-12 animate-fade-in h-[calc(100vh-64px)] flex flex-col">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 flex-1 overflow-hidden">
@@ -81,16 +107,6 @@ export default function PortalPage() {
                       <p className="text-[10px] font-bold text-muted-foreground uppercase">{patient.mrn}</p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="p-2 bg-medical-blue/5 rounded-lg border border-medical-blue/10 text-center">
-                      <p className="text-[9px] font-bold text-medical-blue uppercase">Status</p>
-                      <p className="text-xs font-bold text-slate-800">{patient.status}</p>
-                    </div>
-                    <div className="p-2 bg-medical-blue/5 rounded-lg border border-medical-blue/10 text-center">
-                      <p className="text-[9px] font-bold text-medical-blue uppercase">Diagnosis</p>
-                      <p className="text-xs font-bold text-slate-800 truncate">{patient.primaryDiagnosis.code}</p>
-                    </div>
-                  </div>
                 </div>
               )}
             </CardContent>
@@ -98,11 +114,12 @@ export default function PortalPage() {
           <div className="space-y-3">
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Suggested Inquiries</p>
             {QUICK_PROMPTS.map(p => (
-              <Button 
-                key={p} 
-                variant="outline" 
+              <Button
+                key={p}
+                variant="outline"
                 className="w-full justify-start text-[11px] font-bold text-slate-600 hover:text-medical-blue hover:bg-medical-blue/5 border-slate-200 rounded-xl h-auto py-3"
                 onClick={() => setInputText(p)}
+                disabled={sendMutation.isPending}
               >
                 <Sparkles className="w-3.5 h-3.5 mr-2 text-medical-blue" /> {p}
               </Button>
@@ -110,7 +127,7 @@ export default function PortalPage() {
           </div>
         </div>
         <Card className="lg:col-span-3 border-border shadow-soft flex flex-col bg-white overflow-hidden">
-          <CardHeader className="border-b flex flex-row items-center justify-between py-4 px-6 shrink-0 z-10 bg-white">
+          <CardHeader className="border-b flex flex-row items-center justify-between py-4 px-6 shrink-0 z-50 bg-white">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-medical-blue flex items-center justify-center shadow-primary"><Bot className="w-6 h-6 text-white" /></div>
               <div>
@@ -125,7 +142,7 @@ export default function PortalPage() {
           <CardContent className="flex-1 overflow-hidden p-0 flex flex-col bg-slate-50/30">
             <ScrollArea className="flex-1 p-6">
               <div className="space-y-8 max-w-4xl mx-auto">
-                {messages?.map((msg) => {
+                {combinedMessages.map((msg) => {
                   const isMe = msg.userId === currentUser.id;
                   const isBot = msg.userId === 'aura-bot';
                   return (
@@ -140,7 +157,7 @@ export default function PortalPage() {
                         isMe ? "bg-medical-blue text-white rounded-tr-none shadow-primary" : "bg-white text-slate-700 border border-slate-100 rounded-tl-none"
                       )}>
                         <p className={cn("font-medium", isBot && "font-sans whitespace-pre-line")}>
-                          {msg.text.split(/(\[.*?\])/).map((part, i) => 
+                          {msg.text.split(/(\[.*?\])/).map((part, i) =>
                             part.startsWith('[') ? <strong key={i} className="text-medical-blue">{part}</strong> : part
                           )}
                         </p>
@@ -162,23 +179,20 @@ export default function PortalPage() {
                     </div>
                   </div>
                 )}
-                <div ref={scrollRef} />
+                <div ref={scrollRef} className="h-4" />
               </div>
             </ScrollArea>
             <div className="p-4 bg-white border-t z-10">
-              <form 
-                onSubmit={(e) => { e.preventDefault(); if (inputText.trim()) sendMutation.mutate(inputText.trim()); }}
-                className="flex gap-2 max-w-4xl mx-auto"
-              >
-                <Input 
+              <form onSubmit={handleSend} className="flex gap-2 max-w-4xl mx-auto">
+                <Input
                   placeholder="Query clinical trends, medications, or historical patterns..."
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   className="bg-slate-50 border-slate-200 focus-visible:ring-medical-blue py-6 px-6 rounded-xl text-sm font-medium"
                   disabled={sendMutation.isPending}
                 />
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={!inputText.trim() || sendMutation.isPending}
                   className="bg-medical-blue hover:bg-medical-blue/90 text-white shadow-primary h-12 w-12 rounded-xl shrink-0"
                 >

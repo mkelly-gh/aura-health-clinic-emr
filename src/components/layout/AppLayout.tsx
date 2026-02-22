@@ -12,7 +12,7 @@ import {
   Menu,
   X
 } from "lucide-react";
-import { Link, useLocation, Outlet } from "react-router-dom";
+import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -29,15 +29,20 @@ const NAV_ITEMS = [
 ];
 const APP_VERSION = "1.0.0";
 interface SidebarProps {
-  onItemClick?: () => void;
+  onItemClick?: (path: string) => void;
   className?: string;
 }
 export function SidebarContent({ onItemClick, className }: SidebarProps) {
   const { pathname } = useLocation();
+  const handleNav = (path: string) => {
+    if (onItemClick) {
+      onItemClick(path);
+    }
+  };
   return (
     <div className={cn("flex flex-col h-full shrink-0 relative z-40", className)}>
       <div className="p-8">
-        <Link to="/" className="flex items-center gap-3 group" onClick={onItemClick}>
+        <Link to="/" className="flex items-center gap-3 group" onClick={() => handleNav("/")}>
           <div className="w-10 h-10 bg-medical-blue rounded-xl flex items-center justify-center shadow-primary group-hover:scale-110 transition-transform">
             <ShieldCheck className="w-6 h-6 text-white" />
           </div>
@@ -51,7 +56,7 @@ export function SidebarContent({ onItemClick, className }: SidebarProps) {
             <Link
               key={item.path}
               to={item.path}
-              onClick={onItemClick}
+              onClick={() => handleNav(item.path)}
               className={cn(
                 "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all group relative overflow-hidden",
                 isActive
@@ -81,7 +86,13 @@ export function SidebarContent({ onItemClick, className }: SidebarProps) {
 export function AppLayout() {
   const isFetching = useIsFetching();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
   const currentDate = format(new Date(), "yyyy-MM-dd");
+  const handleMobileNav = (path: string) => {
+    setIsMobileMenuOpen(false);
+    // Smooth delay for sheet transition
+    setTimeout(() => navigate(path), 150);
+  };
   return (
     <TooltipProvider delayDuration={300}>
       <div className="flex h-screen bg-slate-50/50 overflow-hidden font-sans">
@@ -89,7 +100,7 @@ export function AppLayout() {
           <SidebarContent />
         </div>
         <div className="flex-1 flex flex-col overflow-hidden">
-          <header className="h-16 border-b bg-white flex items-center justify-between px-4 sm:px-8 z-30 shadow-sm shrink-0">
+          <header className="h-16 border-b bg-white flex items-center justify-between px-4 sm:px-8 z-50 shadow-sm shrink-0">
             <div className="flex items-center gap-4 flex-1 max-w-md">
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
@@ -97,11 +108,11 @@ export function AppLayout() {
                     <Menu className="w-6 h-6" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="p-0 w-64">
+                <SheetContent side="left" className="p-0 w-64 z-[100]">
                   <SheetHeader className="sr-only">
                     <SheetTitle>Navigation Menu</SheetTitle>
                   </SheetHeader>
-                  <SidebarContent onItemClick={() => setIsMobileMenuOpen(false)} />
+                  <SidebarContent onItemClick={handleMobileNav} />
                 </SheetContent>
               </Sheet>
               <div className="relative group flex-1">
@@ -112,7 +123,7 @@ export function AppLayout() {
                 />
               </div>
             </div>
-            <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 ml-2">
               <div className={cn(
                 "hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border bg-slate-50 transition-all duration-500",
                 isFetching ? "opacity-100 border-medical-blue/30 translate-y-0" : "opacity-0 invisible -translate-y-1"
@@ -120,7 +131,7 @@ export function AppLayout() {
                 <RefreshCw className="w-3.5 h-3.5 text-medical-blue animate-spin" />
                 <span className="text-[10px] font-bold text-medical-blue uppercase tracking-tighter">Syncing</span>
               </div>
-              <Badge variant="outline" className="hidden md:flex bg-medical-blue/5 border-medical-blue/20 text-medical-blue text-[10px] font-bold px-2.5 py-1 tracking-tight shrink-0">
+              <Badge variant="outline" className="hidden md:flex bg-medical-blue/5 border-medical-blue/20 text-medical-blue text-[10px] font-bold px-2.5 py-1 tracking-tight shrink-0 whitespace-nowrap">
                 v{APP_VERSION} • {currentDate}
               </Badge>
               <Button variant="ghost" size="icon" className="relative hover:bg-slate-100 h-9 w-9 sm:h-10 sm:w-10 rounded-xl transition-colors shrink-0">
