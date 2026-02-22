@@ -13,6 +13,9 @@ import { RouteErrorBoundary } from '@/components/RouteErrorBoundary';
 import '@/index.css'
 import DashboardPage from '@/pages/DashboardPage'
 import PatientsPage from '@/pages/PatientsPage'
+import PatientDetailPage from '@/pages/PatientDetailPage'
+import PortalPage from '@/pages/PortalPage'
+import SettingsPage from '@/pages/SettingsPage'
 import { AppLayout } from '@/components/layout/AppLayout'
 const queryClient = new QueryClient();
 const router = createBrowserRouter([
@@ -24,6 +27,21 @@ const router = createBrowserRouter([
   {
     path: "/patients",
     element: <AppLayout><PatientsPage /></AppLayout>,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/patients/:id",
+    element: <AppLayout><PatientDetailPage /></AppLayout>,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/portal",
+    element: <AppLayout><PortalPage /></AppLayout>,
+    errorElement: <RouteErrorBoundary />,
+  },
+  {
+    path: "/settings",
+    element: <AppLayout><SettingsPage /></AppLayout>,
     errorElement: <RouteErrorBoundary />,
   }
 ]);

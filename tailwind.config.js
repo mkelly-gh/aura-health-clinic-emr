@@ -53,6 +53,8 @@ export default {
   		},
   		boxShadow: {
   			soft: '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
+        primary: '0 4px 14px 0 rgba(14, 165, 233, 0.39)',
+        glow: '0 0 20px 5px rgba(14, 165, 233, 0.3)'
   		},
   		keyframes: {
   			'fade-in': { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
