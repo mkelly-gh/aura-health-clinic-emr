@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api-client";
-import { Patient } from "@shared/types";
+import { Patient, PatientStatus } from "@shared/types";
 import {
   Table,
   TableBody,
@@ -14,22 +14,26 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { Search, RefreshCw, AlertTriangle, UserPlus, MoreHorizontal } from "lucide-react";
+import { Search, RefreshCw, AlertTriangle, UserPlus, MoreHorizontal, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 export default function PatientsPage() {
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("All");
   const navigate = useNavigate();
   const { data: patientPage, isLoading, isError, refetch } = useQuery<{ items: Patient[] }>({
     queryKey: ["patients"],
     queryFn: () => api<{ items: Patient[] }>("/api/patients"),
     retry: 1,
   });
-  const filteredPatients = patientPage?.items.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.mrn.toLowerCase().includes(search.toLowerCase()) ||
-    p.primaryDiagnosis.description.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredPatients = patientPage?.items.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
+      p.mrn.toLowerCase().includes(search.toLowerCase()) ||
+      p.primaryDiagnosis.description.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter === "All" || p.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
   const getStatusColor = (status: string) => {
     switch(status) {
       case 'Urgent': return 'bg-red-50 text-red-700 border-red-100';
@@ -44,36 +48,46 @@ export default function PatientsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">Patient Registry</h1>
-            <p className="text-muted-foreground">Comprehensive clinical census and history.</p>
+            <p className="text-muted-foreground">Comprehensive clinical census and records.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="relative w-full md:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search MRN, Name..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 bg-white border-input"
-                disabled={isLoading}
-              />
-            </div>
             <Button variant="outline" size="icon" onClick={() => refetch()}><RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin")} /></Button>
-            <Button className="bg-medical-blue hover:bg-medical-blue/90 text-white gap-2">
-              <UserPlus className="w-4 h-4" /> Admission
+            <Button className="bg-medical-blue hover:bg-medical-blue/90 text-white gap-2 shadow-primary">
+              <UserPlus className="w-4 h-4" /> New Admission
             </Button>
           </div>
+        </div>
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+          <div className="relative w-full md:w-96">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Filter by name, MRN, or diagnosis..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 bg-white border-input focus-visible:ring-medical-blue"
+              disabled={isLoading}
+            />
+          </div>
+          <Tabs defaultValue="All" className="w-full md:w-auto" onValueChange={setStatusFilter}>
+            <TabsList className="bg-white border shadow-sm">
+              <TabsTrigger value="All" className="text-xs px-4">All</TabsTrigger>
+              <TabsTrigger value="Urgent" className="text-xs px-4 text-medical-urgent">Urgent</TabsTrigger>
+              <TabsTrigger value="Observation" className="text-xs px-4 text-medical-observation">Obs</TabsTrigger>
+              <TabsTrigger value="Stable" className="text-xs px-4 text-medical-stable">Stable</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
         <div className="bg-white rounded-xl border border-border shadow-soft overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-slate-50/50">
+              <TableHeader className="bg-slate-50/50 border-b">
                 <TableRow>
-                  <TableHead className="w-[140px] font-bold text-xs uppercase tracking-wider text-muted-foreground">MRN</TableHead>
-                  <TableHead className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Patient</TableHead>
-                  <TableHead className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Clinical Status</TableHead>
-                  <TableHead className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Primary Diagnosis</TableHead>
-                  <TableHead className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Last Visit</TableHead>
-                  <TableHead className="text-right font-bold text-xs uppercase tracking-wider text-muted-foreground">Actions</TableHead>
+                  <TableHead className="w-[140px] font-bold text-[10px] uppercase tracking-wider text-muted-foreground py-4">MRN</TableHead>
+                  <TableHead className="font-bold text-[10px] uppercase tracking-wider text-muted-foreground py-4">Patient Profile</TableHead>
+                  <TableHead className="font-bold text-[10px] uppercase tracking-wider text-muted-foreground py-4">Status</TableHead>
+                  <TableHead className="font-bold text-[10px] uppercase tracking-wider text-muted-foreground py-4">Clinical Diagnosis</TableHead>
+                  <TableHead className="font-bold text-[10px] uppercase tracking-wider text-muted-foreground py-4">Last Evaluation</TableHead>
+                  <TableHead className="text-right font-bold text-[10px] uppercase tracking-wider text-muted-foreground py-4">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -102,35 +116,35 @@ export default function PatientsPage() {
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-24">
                       <div className="max-w-xs mx-auto text-muted-foreground">
-                        <p className="text-sm font-medium">No records found matching your query.</p>
+                        <p className="text-sm font-medium italic">No records found matching current filters.</p>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : filteredPatients?.map((patient) => (
                   <TableRow
                     key={patient.id}
-                    className="cursor-pointer hover:bg-slate-50/80 transition-colors group"
+                    className="cursor-pointer hover:bg-slate-50/80 transition-colors group border-b"
                     onClick={() => navigate(`/patients/${patient.id}`)}
                   >
-                    <TableCell className="font-mono text-xs font-bold text-medical-blue">
+                    <TableCell className="font-mono text-[11px] font-bold text-medical-blue">
                       {patient.mrn}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <Avatar className="w-10 h-10 border border-slate-100">
+                        <Avatar className="w-10 h-10 border border-slate-100 shadow-sm">
                           <AvatarImage src={patient.avatarUrl} alt={patient.name} />
                           <AvatarFallback className="bg-slate-100 text-slate-500 font-bold text-xs">
                             {patient.name.split(' ').map(n => n[0]).join('')}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
-                          <span className="font-bold text-slate-900 group-hover:text-medical-blue transition-colors">{patient.name}</span>
-                          <span className="text-[10px] text-muted-foreground font-medium">{patient.gender.charAt(0)} • {patient.age}Y</span>
+                          <span className="font-bold text-slate-900 group-hover:text-medical-blue transition-colors text-sm">{patient.name}</span>
+                          <span className="text-[10px] text-muted-foreground font-semibold uppercase">{patient.gender.charAt(0)} • {patient.age} YEARS</span>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={cn("px-2 py-0 font-bold uppercase text-[9px] tracking-tight", getStatusColor(patient.status))}>
+                      <Badge variant="outline" className={cn("px-2 py-0.5 font-bold uppercase text-[9px] tracking-tight", getStatusColor(patient.status))}>
                         {patient.status}
                       </Badge>
                     </TableCell>
@@ -140,7 +154,7 @@ export default function PatientsPage() {
                         <span className="text-[10px] text-muted-foreground font-mono font-bold">{patient.primaryDiagnosis.code}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-slate-500">
+                    <TableCell className="text-xs text-slate-500 font-medium">
                       {new Date(patient.lastVisit).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </TableCell>
                     <TableCell className="text-right">
