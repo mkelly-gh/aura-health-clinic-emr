@@ -72,24 +72,26 @@ export function HomePage() {
       <div className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">CLINICAL COMMAND</h1>
-            <p className="text-muted-foreground">Facility status and real-time clinical throughput.</p>
+            <h1 className="text-3xl font-extrabold tracking-tighter text-foreground uppercase">Clinical Command</h1>
+            <p className="text-muted-foreground font-medium">Facility status and real-time clinical throughput.</p>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => refetch()} className="shadow-sm">Refresh Data</Button>
-            <Button className="bg-medical-blue hover:bg-medical-blue/90 text-white shadow-primary">New Admission</Button>
+            <Button variant="outline" onClick={() => refetch()} className="shadow-sm active:scale-95 transition-transform bg-white">Refresh Data</Button>
+            <Button className="bg-medical-blue hover:bg-medical-blue/90 text-white shadow-primary active:scale-95 transition-all">New Admission</Button>
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {cards.map((card) => (
-            <Card key={card.title} className="shadow-soft hover:shadow-md transition-shadow border-border">
+            <Card key={card.title} className="shadow-soft hover:shadow-md hover:-translate-y-1 transition-all duration-300 border-border group bg-white">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-xs font-bold uppercase text-muted-foreground tracking-wider">{card.title}</CardTitle>
-                <card.icon className={cn("w-4 h-4", card.color)} />
+                <CardTitle className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">{card.title}</CardTitle>
+                <div className={cn("p-2 rounded-lg bg-slate-50 transition-colors group-hover:bg-white", card.color)}>
+                  <card.icon className="w-4 h-4" />
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-extrabold">{card.value}</div>
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 font-medium">
+                <div className="text-3xl font-extrabold tracking-tight">{card.value}</div>
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1 font-semibold">
                   <TrendingUp className="w-3 h-3 text-medical-stable" /> {card.trend}
                 </p>
               </CardContent>
@@ -97,13 +99,15 @@ export function HomePage() {
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <Card className="lg:col-span-2 shadow-soft border-border bg-white">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg">Facility Volume Trend</CardTitle>
-              <Badge variant="secondary" className="text-[10px] font-bold">ACTIVE WINDOW</Badge>
+          <Card className="lg:col-span-2 shadow-soft border-border bg-white overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
+              <CardTitle className="text-lg font-bold">Facility Volume Trend</CardTitle>
+              <Badge variant="secondary" className="text-[9px] font-extrabold uppercase bg-medical-blue/10 text-medical-blue border-none tracking-widest px-2 py-0.5">
+                Live Window
+              </Badge>
             </CardHeader>
-            <CardContent>
-              <div className="h-[300px] w-full mt-4">
+            <CardContent className="pt-6">
+              <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={MOCK_CHART_DATA}>
                     <defs>
@@ -113,40 +117,46 @@ export function HomePage() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                    <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }} dx={-10} />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', padding: '12px' }} 
+                      labelStyle={{ fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}
+                    />
                     <Area type="monotone" dataKey="volume" stroke="#0EA5E9" strokeWidth={3} fillOpacity={1} fill="url(#colorVolume)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
-          <Card className="shadow-soft overflow-hidden border-border h-full bg-white">
-            <CardHeader className="bg-medical-blue text-white pb-6">
-              <CardTitle className="text-lg">Rapid Response</CardTitle>
-              <p className="text-sm text-white/90">Critical protocols and shortcuts.</p>
+          <Card className="shadow-soft overflow-hidden border-border h-full bg-white flex flex-col">
+            <CardHeader className="bg-medical-blue text-white pb-6 shrink-0">
+              <CardTitle className="text-lg font-bold">Rapid Response</CardTitle>
+              <p className="text-sm text-white/80 font-medium">Critical protocols and diagnostic shortcuts.</p>
             </CardHeader>
-            <CardContent className="p-0 -mt-2">
-              <div className="bg-white rounded-t-xl p-5 space-y-4">
-                <Button variant="outline" className="w-full justify-between hover:bg-medical-blue/5 border-medical-blue/10">
-                  Emergency Triage <Play className="w-4 h-4 text-medical-urgent fill-current" />
+            <CardContent className="p-0 flex-1">
+              <div className="bg-white rounded-t-2xl -mt-3 p-5 space-y-3 relative z-10 flex-1">
+                <Button variant="outline" className="w-full justify-between hover:bg-red-50 hover:text-red-600 hover:border-red-200 border-slate-100 h-12 rounded-xl transition-all group active:scale-[0.98]">
+                  <span className="font-bold text-sm">Emergency Triage</span>
+                  <Play className="w-4 h-4 text-medical-urgent fill-current group-hover:scale-110 transition-transform" />
                 </Button>
-                <Button variant="outline" className="w-full justify-between hover:bg-medical-blue/5 border-medical-blue/10">
-                  Census Audit <ChevronRight className="w-4 h-4 text-medical-blue" />
+                <Button variant="outline" className="w-full justify-between hover:bg-medical-blue/5 hover:border-medical-blue/20 border-slate-100 h-12 rounded-xl transition-all group active:scale-[0.98]">
+                  <span className="font-bold text-sm text-slate-700">Census Audit</span>
+                  <ChevronRight className="w-4 h-4 text-medical-blue group-hover:translate-x-1 transition-transform" />
                 </Button>
-                <Button variant="outline" className="w-full justify-between hover:bg-medical-blue/5 border-medical-blue/10">
-                  Lab Review <Badge className="h-4 px-1.5 bg-medical-urgent text-white border-none">2</Badge>
+                <Button variant="outline" className="w-full justify-between hover:bg-medical-blue/5 border-slate-100 h-12 rounded-xl transition-all active:scale-[0.98]">
+                  <span className="font-bold text-sm text-slate-700">Lab Review</span>
+                  <Badge className="h-5 px-1.5 bg-medical-urgent text-white border-none text-[10px] font-bold shadow-sm">2 NEW</Badge>
                 </Button>
-                <div className="pt-6 border-t border-slate-100">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase mb-4 tracking-[0.15em]">On-Call Staff</p>
-                  <div className="flex -space-x-2">
+                <div className="pt-6 mt-4 border-t border-slate-100">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase mb-4 tracking-[0.2em]">On-Call Staff</p>
+                  <div className="flex -space-x-2.5">
                     {['T', 'K', 'V', 'A'].map((initial, i) => (
-                      <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-600 shadow-sm ring-1 ring-slate-200">
+                      <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-extrabold text-slate-600 shadow-sm ring-1 ring-slate-200">
                         {initial}
                       </div>
                     ))}
-                    <div className="w-10 h-10 rounded-full border-2 border-white bg-medical-blue text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                    <div className="w-10 h-10 rounded-full border-2 border-white bg-medical-blue text-white flex items-center justify-center text-[10px] font-extrabold shadow-primary">
                       +4
                     </div>
                   </div>
@@ -155,33 +165,33 @@ export function HomePage() {
             </CardContent>
           </Card>
           <Card className="lg:col-span-3 shadow-soft border-border bg-white">
-            <CardHeader>
-              <CardTitle className="text-lg">Recent Clinical Activity</CardTitle>
+            <CardHeader className="border-b pb-4">
+              <CardTitle className="text-lg font-bold">Recent Clinical Activity</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               {stats.recentActivity.length === 0 ? (
-                <div className="text-center py-10 text-muted-foreground italic">No recent flow activity recorded.</div>
+                <div className="text-center py-12 text-muted-foreground italic font-medium">No recent flow activity recorded.</div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-x-10 gap-y-6">
                   {stats.recentActivity.map((activity) => (
-                    <div key={activity.id} className="flex items-center gap-4 group hover:bg-slate-50 p-2 rounded-lg transition-colors border border-transparent hover:border-slate-100">
-                      <Avatar className="w-12 h-12 shadow-sm group-hover:scale-105 transition-transform shrink-0 border border-slate-100">
+                    <div key={activity.id} className="flex items-center gap-4 group p-3 rounded-2xl transition-all border border-transparent hover:bg-slate-50 hover:border-slate-100 cursor-pointer">
+                      <Avatar className="w-12 h-12 shadow-sm group-hover:scale-105 group-hover:shadow-primary/20 transition-all shrink-0 border-2 border-white">
                         <AvatarImage src={activity.patientAvatar} />
-                        <AvatarFallback className="bg-slate-100 font-bold text-xs">
+                        <AvatarFallback className="bg-slate-100 font-extrabold text-xs text-slate-500">
                           {activity.patientName.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-4">
-                          <Link to={`/patients/${activity.patientId}`} className="text-sm font-semibold hover:text-medical-blue hover:underline truncate text-slate-900">
+                        <div className="flex items-center justify-between gap-4 mb-0.5">
+                          <Link to={`/patients/${activity.patientId}`} className="text-sm font-bold hover:text-medical-blue transition-colors truncate text-slate-900">
                             {activity.patientName}
                           </Link>
-                          <span className="text-[10px] text-muted-foreground uppercase font-bold shrink-0">
+                          <span className="text-[10px] text-muted-foreground uppercase font-extrabold tracking-tighter shrink-0 bg-slate-100 px-1.5 py-0.5 rounded">
                             {formatDistanceToNow(activity.timestamp)} ago
                           </span>
                         </div>
-                        <p className="text-xs text-muted-foreground truncate font-medium">{activity.description}</p>
-                        <Badge variant="outline" className="mt-1 text-[9px] uppercase px-1.5 h-4 font-bold border-slate-200 bg-slate-50">
+                        <p className="text-xs text-muted-foreground truncate font-medium mb-2">{activity.description}</p>
+                        <Badge variant="outline" className="text-[9px] uppercase px-2 h-4 font-bold border-medical-blue/20 bg-medical-blue/5 text-medical-blue tracking-tighter">
                           {activity.type}
                         </Badge>
                       </div>

@@ -5,12 +5,15 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useIsFetching } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
 const NAV_ITEMS = [
   { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
   { name: 'Patient Registry', icon: Users, path: '/patients' },
   { name: 'Patient Portal', icon: MessageSquare, path: '/portal' },
   { name: 'Clinic Settings', icon: Settings, path: '/settings' },
 ];
+const APP_VERSION = "v2.5.3";
+const BUILD_DATE = "MAY 2024";
 export function AppSidebar() {
   const { pathname } = useLocation();
   return (
@@ -32,8 +35,8 @@ export function AppSidebar() {
               to={item.path}
               className={cn(
                 "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all group relative overflow-hidden",
-                isActive 
-                  ? "bg-medical-blue text-white shadow-md" 
+                isActive
+                  ? "bg-medical-blue text-white shadow-md"
                   : "text-slate-500 hover:bg-slate-50 hover:text-medical-blue"
               )}
             >
@@ -51,7 +54,7 @@ export function AppSidebar() {
           <div className="w-2 h-2 rounded-full bg-medical-stable animate-pulse" />
           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em]">Clinical Node: LIVE</span>
         </div>
-        <p className="text-[10px] text-muted-foreground font-bold opacity-60">EMR Core v2.5.2 • SECURE</p>
+        <p className="text-[10px] text-muted-foreground font-bold opacity-60">EMR Core {APP_VERSION} • SECURE</p>
       </div>
     </div>
   );
@@ -65,32 +68,35 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="h-16 border-b bg-white flex items-center justify-between px-8 z-30 shadow-sm shrink-0">
           <div className="flex-1 max-w-md">
             <div className="relative group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-medical-blue transition-colors" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-medical-blue transition-all duration-300" />
               <Input
                 placeholder="Search clinician database..."
-                className="pl-10 bg-slate-50/80 border-none focus-visible:ring-1 focus-visible:ring-medical-blue h-9 text-sm rounded-lg"
+                className="pl-10 bg-slate-50/80 border-transparent focus:bg-white focus:border-medical-blue/30 focus-visible:ring-4 focus-visible:ring-medical-blue/10 h-10 text-sm rounded-xl transition-all"
               />
             </div>
           </div>
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-4">
             <div className={cn(
-              "flex items-center gap-2 px-3 py-1.5 rounded-full border bg-slate-50 transition-all duration-500",
+              "hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full border bg-slate-50 transition-all duration-500",
               isFetching ? "opacity-100 border-medical-blue/30 translate-y-0" : "opacity-0 invisible -translate-y-1"
             )}>
               <RefreshCw className="w-3.5 h-3.5 text-medical-blue animate-spin" />
-              <span className="text-[10px] font-bold text-medical-blue uppercase tracking-tighter">Syncing Records</span>
+              <span className="text-[10px] font-bold text-medical-blue uppercase tracking-tighter">Syncing</span>
             </div>
-            <Button variant="ghost" size="icon" className="relative hover:bg-slate-100 h-9 w-9 rounded-lg">
+            <Badge variant="outline" className="hidden md:flex bg-medical-blue/5 border-medical-blue/20 text-medical-blue text-[10px] font-bold px-2 py-0.5 tracking-tight">
+              Aura Health EMR {APP_VERSION} • {BUILD_DATE}
+            </Badge>
+            <Button variant="ghost" size="icon" className="relative hover:bg-slate-100 h-10 w-10 rounded-xl transition-colors">
               <Bell className="w-5 h-5 text-slate-600" />
-              <span className="absolute top-2 right-2.5 w-2 h-2 bg-medical-urgent rounded-full border-2 border-white" />
+              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-medical-urgent rounded-full border-2 border-white" />
             </Button>
-            <div className="w-px h-6 bg-slate-200" />
-            <div className="flex items-center gap-3 group cursor-pointer pl-1">
+            <div className="w-px h-6 bg-slate-200 mx-1" />
+            <div className="flex items-center gap-3 group cursor-pointer">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-bold text-slate-900 leading-none group-hover:text-medical-blue transition-colors">Dr. Thorne</p>
                 <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest mt-1">Chief Surgeon</p>
               </div>
-              <div className="w-9 h-9 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shadow-sm group-hover:border-medical-blue transition-colors">
+              <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shadow-sm group-hover:border-medical-blue group-hover:bg-white transition-all">
                 <UserIcon className="w-5 h-5 text-slate-600 group-hover:text-medical-blue" />
               </div>
             </div>
